@@ -10,8 +10,6 @@ import {
   Camera, Video, X,
 } from "lucide-react";
 
-import Header from "../../layout/Header/Header";
-import Footer from "../../layout/Footer/Footer";
 import MainLayout from "../../layout/MainLayout/MainLayout";
 import ProductCard from "../../components/ProductCard";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,8 +17,9 @@ import type { AppDispatch, RootState } from "../../store/store";
 import {
   fetchProductById, clearCurrentProduct, fetchAllProducts,
 } from "../../store/slices/productSlice";
+import reviewService from "../../services/reviewService";
 
-const API_URL = import.meta.env.REACT_APP_API || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +37,8 @@ const ProductDetail = () => {
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [reviewRating, setReviewRating] = useState<number | null>(null);
   const [reviewText, setReviewText] = useState("");
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [selectedStarFilter, setSelectedStarFilter] = useState<string>("all");
   const colors = ["Hồng", "Trắng", "Xanh Dương", "Xanh lá", "Đen", "Đỏ"];
 
@@ -67,16 +68,43 @@ const ProductDetail = () => {
 
   const similarProducts = products.filter((p) => p._id !== id).slice(0, 6);
 
+  const handleSubmitReview = async () => {
+    if (!product?._id) return;
+    if (!reviewRating) {
+      setReviewError("Vui long chon so sao danh gia.");
+      return;
+    }
+    if (reviewText.trim().length < 10) {
+      setReviewError("Noi dung danh gia toi thieu 10 ky tu.");
+      return;
+    }
+
+    try {
+      setReviewSubmitting(true);
+      setReviewError(null);
+      await reviewService.createReview({
+        productId: product._id,
+        rating: reviewRating,
+        comment: reviewText.trim(),
+      });
+      setReviewText("");
+      setReviewRating(null);
+      setShowReviewDialog(false);
+    } catch (error: any) {
+      setReviewError(error?.response?.data?.message || "Gui danh gia that bai.");
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <>
-        <Header />
         <MainLayout>
           <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
             <CircularProgress color="primary" size={50} />
           </Box>
         </MainLayout>
-        <Footer />
       </>
     );
   }
@@ -84,7 +112,6 @@ const ProductDetail = () => {
   if (!product) {
     return (
       <>
-        <Header />
         <MainLayout>
           <Container maxWidth="lg" sx={{ py: 10, textAlign: "center" }}>
             <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, color: "#1a1a1a" }}>
@@ -96,7 +123,6 @@ const ProductDetail = () => {
             </Button>
           </Container>
         </MainLayout>
-        <Footer />
       </>
     );
   }
@@ -106,7 +132,6 @@ const ProductDetail = () => {
 
   return (
     <>
-      <Header />
       <MainLayout>
         <Container maxWidth="lg" sx={{ py: 3, pb: 12, bgcolor: "#f5f5f5" }}>
           {/* Breadcrumbs */}
@@ -484,6 +509,11 @@ const ProductDetail = () => {
                   {reviewText.length} ký tự (Tối thiểu 10)
                 </Typography>
               </Box>
+              {reviewError && (
+                <Typography variant="body2" sx={{ color: "#E60023", mb: 2 }}>
+                  {reviewError}
+                </Typography>
+              )}
 
               <Divider sx={{ mb: 2 }} />
 
@@ -525,13 +555,16 @@ const ProductDetail = () => {
 
               {/* Submit button */}
               <Box sx={{ display: "flex", justifyContent: "center" }}>
-                <Button variant="contained"
+                <Button
+                  variant="contained"
+                  onClick={handleSubmitReview}
+                  disabled={reviewSubmitting}
                   sx={{
                     bgcolor: "#0ea5e9", color: "white", fontWeight: 800, px: 5, py: 1.2,
                     fontSize: "0.9rem", letterSpacing: 1, textTransform: "uppercase",
                     "&:hover": { bgcolor: "#0284c7" },
                   }}>
-                  GỬI ĐÁNH GIÁ
+                  {reviewSubmitting ? "DANG GUI..." : "GUI DANH GIA"}
                 </Button>
               </Box>
             </DialogContent>
@@ -620,7 +653,6 @@ const ProductDetail = () => {
           </Button>
         </Box>
       </MainLayout>
-      <Footer />
     </>
   );
 };

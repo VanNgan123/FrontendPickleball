@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box, Container, Typography, Paper, Button, Divider, IconButton,
   Fab, Tooltip, CircularProgress, alpha, useTheme,
@@ -11,8 +12,6 @@ import {
 
 import Banner from "../../components/Banner";
 import MainLayout from "../../layout/MainLayout/MainLayout";
-import Header from "../../layout/Header/Header";
-import Footer from "../../layout/Footer/Footer";
 import Countdown from "../../components/Countdown";
 import CompactProductCard from "../../components/CompactProductCard";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,7 +19,7 @@ import type { AppDispatch, RootState } from "../../store/store";
 import { fetchAllProducts } from "../../store/slices/productSlice";
 import { fetchCategories } from "../../store/slices/categorySlices";
 
-const API_URL = import.meta.env.REACT_APP_API || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 // Horizontal scrollable carousel component
 const ProductCarousel = ({
@@ -113,6 +112,7 @@ const ProductCarousel = ({
 const Home = () => {
   const theme = useTheme();
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const { products, loading } = useSelector((state: RootState) => state.products);
   const { categories } = useSelector((state: RootState) => state.categories);
 
@@ -161,7 +161,6 @@ const Home = () => {
 
   return (
     <>
-      <Header />
       <MainLayout>
         <Banner />
 
@@ -314,7 +313,7 @@ const Home = () => {
                     key={cat._id}
                     products={catProducts}
                     title={cat.name.toUpperCase()}
-                    onViewAll={() => window.location.href = `/products?category=${cat._id}`}
+                    onViewAll={() => navigate(`/products?category=${cat._id}`)}
                   />
                 );
               })}
@@ -367,7 +366,6 @@ const Home = () => {
         </Tooltip>
       </Box>
 
-      <Footer />
     </>
   );
 };

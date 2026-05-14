@@ -15,8 +15,14 @@ import MenuIcon from "@mui/icons-material/Menu";
 
 import { ShoppingCart, Search, Phone } from "@mui/icons-material";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../store/store";
 
 const Header = () => {
+  const cartCount = useSelector((state: RootState) => (state as any).cart?.items?.length || 0);
+  const authState = useSelector((state: RootState) => (state as any).auth);
+  const isAuthenticated = Boolean(authState?.user);
+
   return (
     <>
       {/* TẦNG 1 */}
@@ -96,7 +102,7 @@ const Header = () => {
 
             {/* CART */}
             <IconButton sx={{ color: "#FFFFFF", ml: 5, "&:hover": { backgroundColor: "#f11313ff"} }}>
-              <Badge color="primary" badgeContent={2}>
+              <Badge color="primary" badgeContent={cartCount}>
                 <ShoppingCart />
               </Badge>
             </IconButton>
@@ -108,13 +114,13 @@ const Header = () => {
                 fontWeight: "bold",
               }}>
               <Button
-              color="inherit"
-              component={Link}
-              to="/login"
-              sx={{ color: "white", "&:hover": { backgroundColor: "#f11313ff" } }}
-            >
-              <PersonOutlineIcon sx={{fontSize: 30}}/>
-            </Button>
+                color="inherit"
+                component={Link}
+                to={isAuthenticated ? "/" : "/login"}
+                sx={{ color: "white", "&:hover": { backgroundColor: "#f11313ff" } }}
+              >
+                <PersonOutlineIcon sx={{fontSize: 30}}/>
+              </Button>
             </Box>
           </Toolbar>
         </Container>
