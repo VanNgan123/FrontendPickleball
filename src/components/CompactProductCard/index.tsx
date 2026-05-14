@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Box, Typography, Paper, Rating } from "@mui/material";
 import type { Product } from "../../types";
 
-const API_URL = import.meta.env.REACT_APP_API || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 interface CompactProductCardProps {
   product: Product;

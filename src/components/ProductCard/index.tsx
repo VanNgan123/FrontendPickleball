@@ -7,7 +7,7 @@ interface ProductCardProps {
   variant?: "default" | "flash-sale";
 }
 
-const API_URL = import.meta.env.REACT_APP_API || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const ProductCard = ({ product, variant = "default" }: ProductCardProps) => {
   const navigate = useNavigate();

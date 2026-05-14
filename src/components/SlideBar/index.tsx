@@ -1,17 +1,13 @@
-import { Box, List, ListItemButton, ListItemText } from "@mui/material";
+import { Box, List, ListItemButton, ListItemText, Typography } from "@mui/material";
 import CategoryIcon from "@mui/icons-material/Category";
-
-const categories = [
-  "Khuyến Mãi",
-  "Vợt Pickleball",
-  "Bóng Pickleball",
-  "Giày thi đấu",
-  "Phụ kiện",
-  "Quần áo thể thao",
-  "Túi – Balo",
-];
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../store/store";
 
 const SidebarCategory = () => {
+  const navigate = useNavigate();
+  const { categories, loading } = useSelector((state: RootState) => state.categories);
+
   return (
     <Box
       sx={{
@@ -23,9 +19,24 @@ const SidebarCategory = () => {
       }}
     >
       <List sx={{ padding: 0 }}>
+        {loading && (
+          <Box sx={{ p: 2 }}>
+            <Typography variant="body2" sx={{ color: "#888" }}>
+              Đang tải danh mục...
+            </Typography>
+          </Box>
+        )}
+        {!loading && categories.length === 0 && (
+          <Box sx={{ p: 2 }}>
+            <Typography variant="body2" sx={{ color: "#888" }}>
+              Chưa có danh mục nào.
+            </Typography>
+          </Box>
+        )}
         {categories.map((item) => (
           <ListItemButton
-            key={item}
+            key={item._id}
+            onClick={() => navigate(`/products?category=${item._id}`)}
             sx={{
               borderBottom: "1px solid #f0f0f0",
               "&:hover": {
@@ -37,7 +48,7 @@ const SidebarCategory = () => {
           >
             <CategoryIcon sx={{ color: "#E60023", mr: 1 }} />
             <ListItemText
-              primary={item}
+              primary={item.name}
               primaryTypographyProps={{
                 className: "text",
                 fontWeight: 600,

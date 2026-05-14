@@ -1,8 +1,9 @@
 
 import axios from "axios";
-const axiosPickleball= axios.create({
-    baseURL : import.meta.env.REACT_APP_API,
-    timeout: 10000,
+
+const axiosPickleball = axios.create({
+   baseURL: import.meta.env.VITE_API_URL || "http://localhost:3001",
+   timeout: 10000,
 });
 
 
@@ -27,9 +28,9 @@ axiosPickleball.interceptors.response.use(
       return response.data;
    },
    function (error) {
-      // Bất kì mã trạng thái nào lọt ra ngoài tầm 2xx đều khiến hàm này được trigger\
+      // Bất kì mã trạng thái nào lọt ra ngoài tầm 2xx đều khiến hàm này được trigger
       // Làm gì đó với lỗi response
-      return Promise.reject(error?.message);
+      return Promise.reject(error);
    }
 );
 

@@ -4,8 +4,6 @@ import {
   Box, Container, Typography, CircularProgress, Paper, Grid, Pagination,
 } from "@mui/material";
 
-import Header from "../../layout/Header/Header";
-import Footer from "../../layout/Footer/Footer";
 import MainLayout from "../../layout/MainLayout/MainLayout";
 import CompactProductCard from "../../components/CompactProductCard";
 import SidebarFilter from "../../components/SidebarFilter";
@@ -107,7 +105,6 @@ const Products = () => {
 
   return (
     <>
-      <Header />
       <MainLayout>
         <Container maxWidth="xl" sx={{ py: 3, minHeight: "80vh" }}>
           {/* Breadcrumbs */}
@@ -208,7 +205,6 @@ const Products = () => {
           </Box>
         </Container>
       </MainLayout>
-      <Footer />
     </>
   );
 };
