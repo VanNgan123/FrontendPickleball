@@ -8,20 +8,45 @@ import {
   Badge,
   Button,
   Container,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 
 import MenuIcon from "@mui/icons-material/Menu";
 
 import { ShoppingCart, Search, Phone } from "@mui/icons-material";
-import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
-import type { RootState } from "../../store/store";
+import { Link, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState, AppDispatch } from "../../store/store";
+import { logout } from "../../store/slices/authSlice";
+import { useState } from "react";
 
 const Header = () => {
   const cartCount = useSelector((state: RootState) => (state as any).cart?.items?.length || 0);
   const authState = useSelector((state: RootState) => (state as any).auth);
-  const isAuthenticated = Boolean(authState?.user);
+  const isAuthenticated = Boolean(authState?.isAuthenticated);
+  const user = authState?.user;
+  
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
+  const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    handleMenuClose();
+    navigate("/");
+  };
 
   return (
     <>
@@ -113,14 +138,37 @@ const Header = () => {
                 color: "#ffffffff",
                 fontWeight: "bold",
               }}>
-              <Button
-                color="inherit"
-                component={Link}
-                to={isAuthenticated ? "/" : "/login"}
-                sx={{ color: "white", "&:hover": { backgroundColor: "#f11313ff" } }}
-              >
-                <PersonOutlineIcon sx={{fontSize: 30}}/>
-              </Button>
+              {isAuthenticated ? (
+                <>
+                  <Button
+                    color="inherit"
+                    onClick={handleMenuClick}
+                    sx={{ color: "white", "&:hover": { backgroundColor: "#f11313ff" }, textTransform: "none", ml: 2 }}
+                  >
+                    <PersonOutlineIcon sx={{fontSize: 24, mr: 1}}/>
+                    <Typography>{user?.name || 'Tài khoản'}</Typography>
+                  </Button>
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={open}
+                    onClose={handleMenuClose}
+                    transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                    anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                  >
+                    <MenuItem onClick={handleMenuClose} component={Link} to="/profile">Hồ sơ</MenuItem>
+                    <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
+                  </Menu>
+                </>
+              ) : (
+                <Button
+                  color="inherit"
+                  component={Link}
+                  to="/login"
+                  sx={{ color: "white", "&:hover": { backgroundColor: "#f11313ff" }, ml: 2 }}
+                >
+                  <PersonOutlineIcon sx={{fontSize: 30}}/>
+                </Button>
+              )}
             </Box>
           </Toolbar>
         </Container>
