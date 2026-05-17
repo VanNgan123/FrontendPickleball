@@ -23,7 +23,8 @@ import { logout } from "../../store/slices/authSlice";
 import { useState } from "react";
 
 const Header = () => {
-  const cartCount = useSelector((state: RootState) => (state as any).cart?.items?.length || 0);
+  const cartItems = useSelector((state: RootState) => state.cart.items);
+  const cartCount = cartItems.reduce((sum, item) => sum + item.qty, 0);
   const authState = useSelector((state: RootState) => (state as any).auth);
   const isAuthenticated = Boolean(authState?.isAuthenticated);
   const user = authState?.user;
@@ -126,7 +127,10 @@ const Header = () => {
             </Box>
 
             {/* CART */}
-            <IconButton sx={{ color: "#FFFFFF", ml: 5, "&:hover": { backgroundColor: "#f11313ff"} }}>
+            <IconButton
+              onClick={() => navigate("/cart")}
+              sx={{ color: "#FFFFFF", ml: 5, "&:hover": { backgroundColor: "#f11313ff" } }}
+            >
               <Badge color="primary" badgeContent={cartCount}>
                 <ShoppingCart />
               </Badge>
