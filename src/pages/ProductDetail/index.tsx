@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Box, Container, Typography, Button, Chip, Divider, CircularProgress,
-  Paper, IconButton, Rating, Card, Grid, Dialog, DialogContent, Checkbox, FormControlLabel,
+  Paper, IconButton, Rating, Grid, Dialog, DialogContent, Checkbox, FormControlLabel,
 } from "@mui/material";
 import {
   ChevronLeft, ChevronRight, ShoppingCart, Heart, Share2,
@@ -17,6 +17,7 @@ import type { AppDispatch, RootState } from "../../store/store";
 import {
   fetchProductById, clearCurrentProduct, fetchAllProducts,
 } from "../../store/slices/productSlice";
+import { addToCart } from "../../store/slices/cartSlice";
 import reviewService from "../../services/reviewService";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
@@ -29,6 +30,9 @@ const ProductDetail = () => {
 
   const { currentProduct: product, detailLoading: loading, products } =
     useSelector((state: RootState) => state.products);
+
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const cartActionLoading = useSelector((state: RootState) => state.cart.actionLoading);
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -43,10 +47,31 @@ const ProductDetail = () => {
   const colors = ["Hồng", "Trắng", "Xanh Dương", "Xanh lá", "Đen", "Đỏ"];
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     if (id) dispatch(fetchProductById(id));
     dispatch(fetchAllProducts());
     return () => { dispatch(clearCurrentProduct()); };
   }, [id, dispatch]);
+
+  useEffect(() => {
+    const elements = Array.from(document.querySelectorAll("[data-reveal]"));
+    if (elements.length === 0) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            obs.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.18, rootMargin: "0px 0px -10% 0px" },
+    );
+
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [product?._id]);
 
   const getImageUrl = (imagePath?: string) => {
     if (!imagePath) return "https://via.placeholder.com/600x600?text=No+Image";
@@ -67,6 +92,36 @@ const ProductDetail = () => {
   };
 
   const similarProducts = products.filter((p) => p._id !== id).slice(0, 6);
+
+  // Handler: Thêm vào giỏ
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    if (!product?._id) return;
+    try {
+      await dispatch(addToCart({ productId: product._id, qty: quantity })).unwrap();
+      alert("Đã thêm vào giỏ hàng!");
+    } catch (error: any) {
+      alert(error || "Thêm vào giỏ thất bại");
+    }
+  };
+
+  // Handler: Mua ngay
+  const handleBuyNow = async () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    if (!product?._id) return;
+    try {
+      await dispatch(addToCart({ productId: product._id, qty: quantity })).unwrap();
+      navigate("/cart");
+    } catch (error: any) {
+      alert(error || "Thêm vào giỏ thất bại");
+    }
+  };
 
   const handleSubmitReview = async () => {
     if (!product?._id) return;
@@ -133,7 +188,15 @@ const ProductDetail = () => {
   return (
     <>
       <MainLayout>
-        <Container maxWidth="lg" sx={{ py: 3, pb: 12, bgcolor: "#f5f5f5" }}>
+        <Box
+          sx={{
+            bgcolor: "#eef2ff",
+            backgroundImage:
+              "radial-gradient(1200px 500px at 10% -10%, rgba(59,130,246,0.15), transparent 60%), radial-gradient(900px 400px at 90% 0%, rgba(132,204,22,0.18), transparent 55%)",
+            py: { xs: 3, md: 4 },
+          }}
+        >
+          <Container maxWidth="lg" sx={{ pb: { xs: 10, md: 12 } }}>
           {/* Breadcrumbs */}
           <Typography variant="caption" sx={{ color: "text.secondary", textTransform: "uppercase", mb: 2, display: "block" }}>
             <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>TRANG CHỦ</span>
@@ -144,36 +207,110 @@ const ProductDetail = () => {
           </Typography>
 
           {/* Main Product Section */}
-          <Paper elevation={0} sx={{ p: 3, border: "1px solid #eee", mb: 4, bgcolor: "#fff" }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 2.5, md: 3.5 },
+              border: "1px solid #e6e8f0",
+              mb: 4,
+              bgcolor: "rgba(255,255,255,0.95)",
+              borderRadius: 3,
+              boxShadow: "0 24px 60px -40px rgba(15,23,42,0.6)",
+              backdropFilter: "blur(8px)",
+            }}
+            data-reveal
+            className="reveal"
+          >
             <Grid container spacing={4}>
               {/* Left: Images */}
               <Grid size={{ xs: 12, md: 6 }}>
-                <Box sx={{ position: "relative", mb: 2 }}>
-                  {discount > 0 && (
-                    <Chip label={`-${discount}%`} sx={{ position: "absolute", top: 16, left: 16, bgcolor: "#a3e635", fontWeight: "bold", borderRadius: 1, zIndex: 1 }} size="small" />
+                <Box
+                  sx={{
+                    display: { xs: "block", md: "grid" },
+                    gridTemplateColumns: { md: "88px 1fr" },
+                    gap: 2,
+                    alignItems: "start",
+                  }}
+                >
+                  {images.length > 1 && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: { xs: "row", md: "column" },
+                        gap: 1,
+                        overflowX: { xs: "auto", md: "visible" },
+                        "&::-webkit-scrollbar": { display: "none" },
+                      }}
+                    >
+                      {images.map((img, idx) => (
+                        <Box
+                          key={idx}
+                          onClick={() => setSelectedImage(idx)}
+                          sx={{
+                            width: 80,
+                            height: 80,
+                            cursor: "pointer",
+                            flexShrink: 0,
+                            p: 0.5,
+                            borderRadius: 2,
+                            border: selectedImage === idx ? "2px solid #84cc16" : "1px solid #e2e8f0",
+                            bgcolor: selectedImage === idx ? "rgba(132,204,22,0.08)" : "#fff",
+                          }}
+                        >
+                          <Box
+                            component="img"
+                            src={getImageUrl(img)}
+                            alt={`Thumb ${idx + 1}`}
+                            sx={{ width: "100%", height: "100%", objectFit: "contain" }}
+                          />
+                        </Box>
+                      ))}
+                    </Box>
                   )}
-                  <Box sx={{ border: "1px solid #eee", borderRadius: 1, p: 2, display: "flex", justifyContent: "center", alignItems: "center", aspectRatio: "1/1" }}>
-                    <Box component="img"
-                      src={images.length > 0 ? getImageUrl(images[selectedImage]) : "https://via.placeholder.com/600x600?text=No+Image"}
-                      alt={product.name}
-                      sx={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
-                    />
+                  <Box sx={{ position: "relative" }}>
+                    {discount > 0 && (
+                      <Chip label={`-${discount}%`} sx={{ position: "absolute", top: 16, left: 16, bgcolor: "#a3e635", fontWeight: "bold", borderRadius: 1, zIndex: 1 }} size="small" />
+                    )}
+                    <Box
+                      sx={{
+                        border: "1px solid #e2e8f0",
+                        borderRadius: 3,
+                        p: { xs: 1.5, md: 2.5 },
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        aspectRatio: "1/1",
+                        bgcolor: "#f8fafc",
+                        position: "relative",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          inset: 0,
+                          background:
+                            "radial-gradient(circle at 20% 20%, rgba(99,102,241,0.12), transparent 45%), radial-gradient(circle at 80% 10%, rgba(16,185,129,0.12), transparent 40%)",
+                          zIndex: 0,
+                        }}
+                      />
+                      <Box
+                        component="img"
+                        src={images.length > 0 ? getImageUrl(images[selectedImage]) : "https://via.placeholder.com/600x600?text=No+Image"}
+                        alt={product.name}
+                        sx={{
+                          maxWidth: "100%",
+                          maxHeight: "100%",
+                          objectFit: "contain",
+                          position: "relative",
+                          zIndex: 1,
+                          transition: "transform 0.4s ease",
+                          "&:hover": { transform: "scale(1.04)" },
+                        }}
+                      />
+                    </Box>
                   </Box>
                 </Box>
-                {images.length > 1 && (
-                  <Box sx={{ display: "flex", gap: 1, overflowX: "auto", "&::-webkit-scrollbar": { display: "none" } }}>
-                    {images.map((img, idx) => (
-                      <Box key={idx} onClick={() => setSelectedImage(idx)}
-                        sx={{
-                          width: 80, height: 80, cursor: "pointer", flexShrink: 0, p: 0.5, borderRadius: 1,
-                          border: selectedImage === idx ? "2px solid #a3e635" : "1px solid #eee",
-                        }}>
-                        <Box component="img" src={getImageUrl(img)} alt={`Thumb ${idx + 1}`}
-                          sx={{ width: "100%", height: "100%", objectFit: "contain" }} />
-                      </Box>
-                    ))}
-                  </Box>
-                )}
               </Grid>
 
               {/* Right: Info */}
@@ -183,9 +320,19 @@ const ProductDetail = () => {
                     {product.brand}
                   </Typography>
                 )}
-                <Typography variant="h5" sx={{ fontWeight: "bold", mb: 1, color: "#1a1a1a" }}>
-                  {product.name}
-                </Typography>
+                <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 2 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1, color: "#0f172a" }}>
+                    {product.name}
+                  </Typography>
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    <IconButton sx={{ bgcolor: "#f1f5f9", "&:hover": { bgcolor: "#e2e8f0" } }}>
+                      <Heart size={18} />
+                    </IconButton>
+                    <IconButton sx={{ bgcolor: "#f1f5f9", "&:hover": { bgcolor: "#e2e8f0" } }}>
+                      <Share2 size={18} />
+                    </IconButton>
+                  </Box>
+                </Box>
 
                 {/* Rating */}
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
@@ -193,11 +340,29 @@ const ProductDetail = () => {
                   <Typography variant="body2" sx={{ color: "#888" }}>(đánh giá) | Đã bán 0</Typography>
                 </Box>
 
-                {/* Price Box - gradient style from template */}
-                <Box sx={{ background: "linear-gradient(to right, #1e293b, #84cc16)", borderRadius: 2, p: 2, color: "white", mb: 3 }}>
+                {/* Price Box */}
+                <Box
+                  sx={{
+                    background: "linear-gradient(120deg, #0f172a, #1d4ed8)",
+                    borderRadius: 3,
+                    p: 2.5,
+                    color: "white",
+                    mb: 3,
+                    position: "relative",
+                    overflow: "hidden",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      inset: 0,
+                      background: "radial-gradient(circle at 20% 20%, rgba(132,204,22,0.4), transparent 40%)",
+                      opacity: 0.6,
+                    }}
+                  />
                   <Typography variant="body2">Giá khuyến mãi:</Typography>
                   <Box sx={{ display: "flex", alignItems: "baseline", gap: 2 }}>
-                    <Typography variant="h4" sx={{ fontWeight: "bold", color: "#ef4444" }}>
+                    <Typography variant="h4" sx={{ fontWeight: "bold", color: "#f97316" }}>
                       {formatPrice(product.salePrice || product.price)}
                     </Typography>
                     {product.salePrice && (
@@ -207,14 +372,14 @@ const ProductDetail = () => {
                     )}
                   </Box>
                   {saving > 0 && (
-                    <Typography variant="body2" sx={{ fontWeight: "medium" }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       Tiết kiệm: {formatPrice(saving)}
                     </Typography>
                   )}
                 </Box>
 
                 {/* Extra Offers */}
-                <Box sx={{ bgcolor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 1, mb: 3 }}>
+                <Box sx={{ bgcolor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 2, mb: 3 }}>
                   <Box sx={{ bgcolor: "#a3e635", display: "inline-block", px: 2, py: 0.5, borderTopLeftRadius: 4, borderBottomRightRadius: 8, fontWeight: "bold", fontSize: "0.875rem", color: "black" }}>
                     Ưu đãi thêm:
                   </Box>
@@ -284,19 +449,54 @@ const ProductDetail = () => {
                 {/* Action Buttons */}
                 <Grid container spacing={2} sx={{ mb: 2 }}>
                   <Grid size={6}>
-                    <Button variant="contained" fullWidth disabled={product.stock === 0}
-                      sx={{ py: 1.5, fontWeight: "bold", bgcolor: "#0f172a", "&:hover": { bgcolor: "#1e293b" } }}>
-                      MUA NGAY
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      disabled={product.stock === 0 || cartActionLoading}
+                      onClick={handleBuyNow}
+                      sx={{ py: 1.5, fontWeight: 800, bgcolor: "#e11d48", "&:hover": { bgcolor: "#be123c" } }}
+                    >
+                      {cartActionLoading ? <CircularProgress size={22} color="inherit" /> : "MUA NGAY"}
                     </Button>
                   </Grid>
                   <Grid size={6}>
-                    <Button variant="contained" fullWidth disabled={product.stock === 0}
-                      startIcon={<ShoppingCart size={18} />}
-                      sx={{ py: 1.5, fontWeight: "bold", bgcolor: "#0f172a", "&:hover": { bgcolor: "#1e293b" } }}>
-                      THÊM VÀO GIỎ
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      disabled={product.stock === 0 || cartActionLoading}
+                      onClick={handleAddToCart}
+                      startIcon={!cartActionLoading ? <ShoppingCart size={18} /> : undefined}
+                      sx={{
+                        py: 1.5, fontWeight: 800,
+                        color: "#0f172a", borderColor: "#0f172a",
+                        "&:hover": { bgcolor: "#0f172a", color: "#fff", borderColor: "#0f172a" },
+                      }}
+                    >
+                      {cartActionLoading ? <CircularProgress size={22} color="inherit" /> : "THÊM VÀO GIỎ"}
                     </Button>
                   </Grid>
                 </Grid>
+
+                <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" }, gap: 1.5, mb: 3 }}>
+                  <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "#f8fafc", border: "1px solid #e2e8f0", display: "flex", gap: 1.5, alignItems: "center" }}>
+                    <Truck size={18} color="#0ea5e9" />
+                    <Typography variant="caption" sx={{ color: "#334155", fontWeight: 600 }}>
+                      Giao nhanh 2-3 ngày
+                    </Typography>
+                  </Box>
+                  <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "#f8fafc", border: "1px solid #e2e8f0", display: "flex", gap: 1.5, alignItems: "center" }}>
+                    <Shield size={18} color="#22c55e" />
+                    <Typography variant="caption" sx={{ color: "#334155", fontWeight: 600 }}>
+                      Bảo hành chính hãng 12 tháng
+                    </Typography>
+                  </Box>
+                  <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "#f8fafc", border: "1px solid #e2e8f0", display: "flex", gap: 1.5, alignItems: "center" }}>
+                    <RotateCcw size={18} color="#f97316" />
+                    <Typography variant="caption" sx={{ color: "#334155", fontWeight: 600 }}>
+                      Đổi trả trong 7 ngày
+                    </Typography>
+                  </Box>
+                </Box>
 
                 {/* Contact Buttons */}
                 <Grid container spacing={2}>
@@ -317,7 +517,7 @@ const ProductDetail = () => {
 
           {/* Details Section */}
           {(product.description || (product.specs && Object.keys(product.specs).length > 0)) && (
-            <Paper elevation={0} sx={{ p: 0, border: "1px solid #e0e0e0", mb: 4, bgcolor: "#fff", borderRadius: 2, overflow: "hidden" }}>
+            <Paper elevation={0} sx={{ p: 0, border: "1px solid #e0e0e0", mb: 4, bgcolor: "#fff", borderRadius: 3, overflow: "hidden" }} data-reveal className="reveal">
               {/* Tab Header */}
               <Box sx={{ borderBottom: "2px solid #eee", display: "flex", justifyContent: "center", pt: 3 }}>
                 <Box sx={{
@@ -409,62 +609,109 @@ const ProductDetail = () => {
           )}
 
           {/* Reviews Section */}
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2, color: "#1a1a1a" }}>
-              Đánh giá {product.name}
-            </Typography>
-            <Paper elevation={0} sx={{ border: "1px solid #eee", borderRadius: 1, p: 3, display: "flex", flexWrap: "wrap", gap: 4, mb: 3, bgcolor: "#fff" }}>
-              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minWidth: 150 }}>
+          <Box sx={{ mb: 4 }} data-reveal className="reveal">
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, mb: 2 }}>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: "#0f172a" }}>
+                  Đánh giá {product.name}
+                </Typography>
+                <Typography variant="body2" sx={{ color: "#64748b" }}>
+                  Hãy chia sẻ cảm nhận để giúp cộng đồng lựa chọn tốt hơn.
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                onClick={() => setShowReviewDialog(true)}
+                sx={{ bgcolor: "#1d4ed8", color: "white", fontWeight: 700, "&:hover": { bgcolor: "#1e40af" } }}
+              >
+                VIẾT ĐÁNH GIÁ
+              </Button>
+            </Box>
+
+            <Paper
+              elevation={0}
+              sx={{
+                border: "1px solid #e2e8f0",
+                borderRadius: 3,
+                p: { xs: 2.5, md: 3 },
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", md: "200px 1fr 220px" },
+                gap: 3,
+                mb: 3,
+                bgcolor: "#fff",
+              }}
+            >
+              <Box sx={{ display: "flex", flexDirection: "column", alignItems: { xs: "flex-start", md: "center" }, gap: 1 }}>
                 <Box sx={{ display: "flex", alignItems: "baseline", gap: 1 }}>
-                  <Typography variant="h3" sx={{ fontWeight: "bold", color: "#f59e0b" }}>0.0</Typography>
+                  <Typography variant="h3" sx={{ fontWeight: 800, color: "#f59e0b" }}>0.0</Typography>
                   <Rating value={1} max={1} readOnly sx={{ color: "#f59e0b" }} />
                 </Box>
-                <Typography variant="caption" sx={{ fontWeight: "bold", color: "#1a1a1a" }}>ĐÁNH GIÁ TRUNG BÌNH</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b" }}>
+                  ĐÁNH GIÁ TRUNG BÌNH
+                </Typography>
+                <Typography variant="caption" sx={{ color: "#94a3b8" }}>0 đánh giá</Typography>
               </Box>
-              <Box sx={{ flexGrow: 1 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 {[5, 4, 3, 2, 1].map((star) => (
-                  <Box key={star} sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+                  <Box key={star} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Typography variant="body2" sx={{ width: 30, color: "#1a1a1a" }}>{star} ★</Typography>
                     <Box sx={{ flexGrow: 1, height: 8, bgcolor: "#f1f5f9", borderRadius: 4, overflow: "hidden" }}>
-                      <Box sx={{ width: "0%", height: "100%", bgcolor: "#0ea5e9" }} />
+                      <Box sx={{ width: "0%", height: "100%", bgcolor: "#1d4ed8" }} />
                     </Box>
-                    <Typography variant="body2" sx={{ width: 100, color: "#0ea5e9", textAlign: "right" }}>0% | 0 đánh giá</Typography>
+                    <Typography variant="body2" sx={{ width: 110, color: "#1d4ed8", textAlign: "right" }}>0% | 0</Typography>
                   </Box>
                 ))}
               </Box>
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", minWidth: 200, borderLeft: { md: "1px solid #eee" }, pl: { md: 4 } }}>
-                <Button variant="contained" onClick={() => setShowReviewDialog(true)}
-                  sx={{ bgcolor: "#0ea5e9", color: "white", fontWeight: "bold", "&:hover": { bgcolor: "#0284c7" } }}>
+              <Box
+                sx={{
+                  borderRadius: 2,
+                  border: "1px dashed #cbd5f5",
+                  p: 2,
+                  bgcolor: "#f8fafc",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1.5,
+                  justifyContent: "center",
+                }}
+              >
+                <Typography variant="body2" sx={{ color: "#475569", fontWeight: 600 }}>
+                  Mời bạn cho 1 đánh giá nhé!
+                </Typography>
+                <Button
+                  variant="outlined"
+                  onClick={() => setShowReviewDialog(true)}
+                  sx={{ borderColor: "#1d4ed8", color: "#1d4ed8", fontWeight: 700, "&:hover": { bgcolor: "#1d4ed8", color: "white" } }}
+                >
                   ĐÁNH GIÁ NGAY
                 </Button>
               </Box>
             </Paper>
 
             {/* Star filter buttons */}
-            <Box sx={{ display: "flex", gap: 1, mb: 3, flexWrap: "wrap", bgcolor: "#f8fafc", p: 2, borderRadius: 1 }}>
+            <Box sx={{ display: "flex", gap: 1, mb: 3, flexWrap: "wrap", bgcolor: "#f8fafc", p: 2, borderRadius: 2 }}>
               <Button variant={selectedStarFilter === "all" ? "contained" : "outlined"} size="small"
                 onClick={() => setSelectedStarFilter("all")}
                 sx={{
-                  ...(selectedStarFilter === "all" ? { bgcolor: "#0ea5e9", color: "white" } : { color: "#1a1a1a", borderColor: "#e2e8f0", bgcolor: "white" }),
+                  ...(selectedStarFilter === "all" ? { bgcolor: "#1d4ed8", color: "white" } : { color: "#1a1a1a", borderColor: "#e2e8f0", bgcolor: "white" }),
                   minWidth: "auto", boxShadow: "none",
                 }}>Tất cả</Button>
               {[5, 4, 3, 2, 1].map((star) => (
                 <Button key={star} variant={selectedStarFilter === String(star) ? "contained" : "outlined"} size="small"
                   onClick={() => setSelectedStarFilter(String(star))}
                   sx={{
-                    ...(selectedStarFilter === String(star) ? { bgcolor: "#0ea5e9", color: "white" } : { color: "#1a1a1a", borderColor: "#e2e8f0", bgcolor: "white" }),
+                    ...(selectedStarFilter === String(star) ? { bgcolor: "#1d4ed8", color: "white" } : { color: "#1a1a1a", borderColor: "#e2e8f0", bgcolor: "white" }),
                     minWidth: "auto",
                   }}>{star} ★</Button>
               ))}
               <Button variant={selectedStarFilter === "video" ? "contained" : "outlined"} size="small"
                 onClick={() => setSelectedStarFilter("video")}
                 sx={{
-                  ...(selectedStarFilter === "video" ? { bgcolor: "#0ea5e9", color: "white" } : { color: "#1a1a1a", borderColor: "#e2e8f0", bgcolor: "white" }),
+                  ...(selectedStarFilter === "video" ? { bgcolor: "#1d4ed8", color: "white" } : { color: "#1a1a1a", borderColor: "#e2e8f0", bgcolor: "white" }),
                 }}>Có video</Button>
               <Button variant={selectedStarFilter === "photo" ? "contained" : "outlined"} size="small"
                 onClick={() => setSelectedStarFilter("photo")}
                 sx={{
-                  ...(selectedStarFilter === "photo" ? { bgcolor: "#0ea5e9", color: "white" } : { color: "#1a1a1a", borderColor: "#e2e8f0", bgcolor: "white" }),
+                  ...(selectedStarFilter === "photo" ? { bgcolor: "#1d4ed8", color: "white" } : { color: "#1a1a1a", borderColor: "#e2e8f0", bgcolor: "white" }),
                 }}>Có ảnh</Button>
             </Box>
 
@@ -571,26 +818,33 @@ const ProductDetail = () => {
           </Dialog>
 
           {/* Q&A Section */}
-          <Box sx={{ mb: 6 }}>
-            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2, color: "#1a1a1a" }}>Hỏi đáp</Typography>
-            <Paper elevation={0} sx={{ border: "1px solid #ccc", borderRadius: 1, overflow: "hidden", mb: 3, bgcolor: "#fff" }}>
+          <Box sx={{ mb: 6 }} data-reveal className="reveal">
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: "#0f172a" }}>Hỏi đáp</Typography>
+                <Typography variant="body2" sx={{ color: "#64748b" }}>
+                  Đặt câu hỏi về sản phẩm, shop sẽ phản hồi sớm nhất.
+                </Typography>
+              </Box>
+            </Box>
+            <Paper elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: { xs: 2, md: 3 }, mb: 3, bgcolor: "#fff" }}>
               <textarea
                 placeholder="Mời bạn tham gia thảo luận, vui lòng nhập tiếng Việt có dấu."
-                style={{ width: "100%", minHeight: 100, padding: 16, border: "none", outline: "none", resize: "vertical", fontFamily: "inherit" }}
+                style={{ width: "100%", minHeight: 120, padding: 16, border: "1px solid #e2e8f0", outline: "none", resize: "vertical", borderRadius: 8, fontFamily: "inherit" }}
               />
-              <Box sx={{ display: "flex", alignItems: "center", p: 1, borderTop: "1px solid #eee", gap: 2, flexWrap: "wrap" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2, pl: 2 }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", fontSize: "0.875rem", color: "#1a1a1a" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap", mt: 2 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: "0.875rem", color: "#1a1a1a" }}>
                     <input type="radio" name="gender" value="Anh" defaultChecked /> Anh
                   </label>
-                  <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", fontSize: "0.875rem", color: "#1a1a1a" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: "0.875rem", color: "#1a1a1a" }}>
                     <input type="radio" name="gender" value="Chị" /> Chị
                   </label>
                 </Box>
-                <input type="text" placeholder="Họ tên*" style={{ flexGrow: 1, padding: "8px 12px", border: "1px solid #eee", borderRadius: 4, outline: "none" }} />
-                <input type="email" placeholder="Email" style={{ flexGrow: 1, padding: "8px 12px", border: "1px solid #eee", borderRadius: 4, outline: "none" }} />
-                <Button variant="contained" sx={{ bgcolor: "#facc15", color: "black", fontWeight: "bold", minWidth: 80, boxShadow: "none", "&:hover": { bgcolor: "#eab308" } }}>
-                  GỬI
+                <input type="text" placeholder="Họ tên*" style={{ flexGrow: 1, minWidth: 180, padding: "10px 12px", border: "1px solid #e2e8f0", borderRadius: 6, outline: "none" }} />
+                <input type="email" placeholder="Email" style={{ flexGrow: 1, minWidth: 180, padding: "10px 12px", border: "1px solid #e2e8f0", borderRadius: 6, outline: "none" }} />
+                <Button variant="contained" sx={{ bgcolor: "#84cc16", color: "#0f172a", fontWeight: 800, minWidth: 120, boxShadow: "none", "&:hover": { bgcolor: "#65a30d" } }}>
+                  GỬI CÂU HỎI
                 </Button>
               </Box>
             </Paper>
@@ -599,36 +853,88 @@ const ProductDetail = () => {
 
           {/* Similar Products */}
           {similarProducts.length > 0 && (
-            <Box sx={{ mb: 8 }}>
-              <Typography variant="h6" sx={{ fontWeight: "bold", textTransform: "uppercase", mb: 3, color: "#1a1a1a" }}>
-                SẢN PHẨM TƯƠNG TỰ
-              </Typography>
+            <Box sx={{ mb: 8 }} data-reveal className="reveal">
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800, textTransform: "uppercase", color: "#0f172a" }}>
+                  SẢN PHẨM TƯƠNG TỰ
+                </Typography>
+                <Typography variant="body2" sx={{ color: "#64748b" }}>
+                  Chọn thêm sản phẩm phù hợp phong cách của bạn.
+                </Typography>
+              </Box>
               <Box sx={{ position: "relative" }}>
-                <IconButton onClick={() => scrollSimilar("left")}
-                  sx={{ position: "absolute", left: -20, top: "50%", transform: "translateY(-50%)", zIndex: 2, bgcolor: "white", boxShadow: 2, "&:hover": { bgcolor: "grey.100" }, color: "#1a1a1a" }}>
+                <IconButton
+                  onClick={() => scrollSimilar("left")}
+                  sx={{
+                    position: "absolute",
+                    left: -16,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    zIndex: 2,
+                    bgcolor: "white",
+                    boxShadow: "0 10px 20px -12px rgba(15,23,42,0.6)",
+                    border: "1px solid #e2e8f0",
+                    "&:hover": { bgcolor: "#f8fafc" },
+                    color: "#1a1a1a",
+                  }}
+                >
                   <ChevronLeft />
                 </IconButton>
-                <Box ref={similarRef}
-                  sx={{ display: "flex", gap: 2, overflowX: "auto", scrollBehavior: "smooth", "&::-webkit-scrollbar": { display: "none" }, scrollbarWidth: "none", pb: 2 }}>
+                <Box
+                  ref={similarRef}
+                  sx={{
+                    display: "flex",
+                    gap: { xs: 2, md: 2.5 },
+                    overflowX: "auto",
+                    scrollBehavior: "smooth",
+                    "&::-webkit-scrollbar": { display: "none" },
+                    scrollbarWidth: "none",
+                    pb: 2,
+                    px: { xs: 0.5, md: 1 },
+                  }}
+                >
                   {similarProducts.map((p) => (
-                    <Box key={p._id} sx={{ minWidth: { xs: "60%", sm: "40%", md: "25%" }, flexShrink: 0 }}>
+                    <Box
+                      key={p._id}
+                      sx={{
+                        width: { xs: "70%", sm: "45%", md: "24%", lg: "18%" },
+                        minWidth: { xs: "70%", sm: "45%", md: "24%", lg: "18%" },
+                        flexShrink: 0,
+                        transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                        "&:hover": { transform: "translateY(-8px)", boxShadow: "0 24px 40px -32px rgba(15,23,42,0.6)" },
+                      }}
+                    >
                       <ProductCard product={p} />
                     </Box>
                   ))}
                 </Box>
-                <IconButton onClick={() => scrollSimilar("right")}
-                  sx={{ position: "absolute", right: -20, top: "50%", transform: "translateY(-50%)", zIndex: 2, bgcolor: "white", boxShadow: 2, "&:hover": { bgcolor: "grey.100" }, color: "#1a1a1a" }}>
+                <IconButton
+                  onClick={() => scrollSimilar("right")}
+                  sx={{
+                    position: "absolute",
+                    right: -16,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    zIndex: 2,
+                    bgcolor: "white",
+                    boxShadow: "0 10px 20px -12px rgba(15,23,42,0.6)",
+                    border: "1px solid #e2e8f0",
+                    "&:hover": { bgcolor: "#f8fafc" },
+                    color: "#1a1a1a",
+                  }}
+                >
                   <ChevronRight />
                 </IconButton>
               </Box>
             </Box>
           )}
         </Container>
+        </Box>
 
         {/* Sticky Bottom Bar */}
         <Box sx={{
           position: "fixed", bottom: 0, left: 0, right: 0, bgcolor: "#0f172a", color: "white",
-          p: 1.5, display: "flex", justifyContent: "center", alignItems: "center", gap: 2,
+          p: 1.5, display: { xs: "flex", md: "none" }, justifyContent: "center", alignItems: "center", gap: 2,
           zIndex: 1000, boxShadow: "0 -4px 6px -1px rgba(0,0,0,0.1)",
         }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
@@ -647,9 +953,13 @@ const ProductDetail = () => {
               </>
             )}
           </Box>
-          <Button variant="contained"
-            sx={{ bgcolor: "#a3e635", color: "black", fontWeight: "bold", px: 4, "&:hover": { bgcolor: "#84cc16" } }}>
-            CHỌN MUA
+          <Button
+            variant="contained"
+            onClick={handleBuyNow}
+            disabled={cartActionLoading}
+            sx={{ bgcolor: "#a3e635", color: "black", fontWeight: "bold", px: 4, "&:hover": { bgcolor: "#84cc16" } }}
+          >
+            {cartActionLoading ? <CircularProgress size={22} /> : "CHỌN MUA"}
           </Button>
         </Box>
       </MainLayout>
