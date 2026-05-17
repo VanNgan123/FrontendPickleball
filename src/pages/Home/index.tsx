@@ -38,7 +38,7 @@ const ProductCarousel = ({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   return (
-    <Box sx={{ mb: 5 }}>
+    <Box sx={{ mb: 5, px: { xs: 2, md: 6 } }}>
       {/* Section Header */}
       <Box sx={{
         display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0,
@@ -83,11 +83,11 @@ const ProductCarousel = ({
           ref={scrollRef}
           sx={{
             display: "flex", gap: 2, overflowX: "auto", scrollBehavior: "smooth",
-            "&::-webkit-scrollbar": { display: "none" }, scrollbarWidth: "none", pb: 1,
+            "&::-webkit-scrollbar": { display: "none" }, scrollbarWidth: "none", pb: 2, px: 1,
           }}
         >
           {products.map((p) => (
-            <Box key={p._id} sx={{ minWidth: { xs: "70%", sm: "45%", md: "23%" }, flexShrink: 0 }}>
+            <Box key={p._id} sx={{ width: { xs: "70%", sm: "45%", md: "24%", lg: "18%" }, minWidth: { xs: "70%", sm: "45%", md: "24%", lg: "18%" }, flexShrink: 0 }}>
               <CompactProductCard product={p} />
             </Box>
           ))}
@@ -292,7 +292,7 @@ const Home = () => {
                       "&::-webkit-scrollbar": { display: "none" }, scrollbarWidth: "none",
                     }}>
                       {flashSaleDisplay.map((p) => (
-                        <Box key={p._id} sx={{ minWidth: { xs: "70%", sm: "45%", md: "24%" }, flexShrink: 0 }}>
+                        <Box key={p._id} sx={{ width: { xs: "70%", sm: "45%", md: "24%" }, minWidth: { xs: "70%", sm: "45%", md: "24%" }, flexShrink: 0 }}>
                           <CompactProductCard product={p} />
                         </Box>
                       ))}
@@ -323,7 +323,6 @@ const Home = () => {
                 <ProductCarousel
                   products={[...products].reverse().slice(0, 8)}
                   title="ĐANG TRENDING"
-                  titleBgColor="#E60023"
                   showViewAll={false}
                 />
               )}
