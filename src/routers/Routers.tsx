@@ -3,6 +3,8 @@ import { Home, Login, SignUp } from '../pages';
 import ProductDetail from '../pages/ProductDetail';
 import Products from '../pages/Products';
 import Cart from '../pages/Cart';
+import Checkout from '../pages/Checkout';
+import OrderSuccess from '../pages/OrderSuccess';
 
 const AppRouters = () => {
   return (
@@ -14,9 +16,11 @@ const AppRouters = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/order-success/:id" element={<OrderSuccess />} />
       </Routes>
     </BrowserRouter>
   );
 };
 
-export default AppRouters;
+export default AppRouters;
