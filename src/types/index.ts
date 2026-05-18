@@ -23,3 +23,30 @@ export interface SingleProductResponse {
   message: string;
   product: Product;
 }
+
+// =============================================
+// Cart Types
+// =============================================
+export interface CartItem {
+  productId: {
+    _id: string;
+    name: string;
+    price: number;
+    image: string[];
+    salePrice?: number;
+    stock: number;
+  };
+  qty: number;
+  _id?: string;
+}
+
+export interface Cart {
+  _id?: string;
+  userId: string;
+  items: CartItem[];
+}
+
+export interface CartResponse {
+  success: boolean;
+  data: Cart;
+}
