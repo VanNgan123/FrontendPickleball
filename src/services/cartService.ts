@@ -5,7 +5,7 @@ const cartService = {
   // Lấy giỏ hàng theo userId
   getCart: async (userId: string): Promise<CartResponse> => {
     const response = await axiosPickleball.get(`/api/cart/${userId}`);
-    return response as unknown as CartResponse;
+    return response as CartResponse;
   },
 
   // Thêm sản phẩm vào giỏ
@@ -19,7 +19,7 @@ const cartService = {
       productId,
       qty,
     });
-    return response as unknown as CartResponse;
+    return response as CartResponse;
   },
 
   // Cập nhật số lượng
@@ -32,7 +32,7 @@ const cartService = {
       productId,
       qty,
     });
-    return response as unknown as CartResponse;
+    return response as CartResponse;
   },
 
   // Xóa 1 sản phẩm
@@ -43,7 +43,7 @@ const cartService = {
     const response = await axiosPickleball.delete(
       `/api/cart/${userId}/${productId}`
     );
-    return response as unknown as CartResponse;
+    return response as CartResponse;
   },
 
   // Xóa toàn bộ giỏ
@@ -51,7 +51,7 @@ const cartService = {
     const response = await axiosPickleball.delete(
       `/api/cart/clear/${userId}`
     );
-    return response as unknown as CartResponse;
+    return response as CartResponse;
   },
 };
 

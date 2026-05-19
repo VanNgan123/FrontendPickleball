@@ -1,24 +1,23 @@
 import axiosPickleball from "../api/axiosPickleball";
-
-export interface Category {
-  _id: string;
-  name: string;
-  slug: string;
-  parentId: string | null;
-  image?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import type { Category, CategoryResponse } from "../types";
 
 const categoryService = {
   getAllCategories: async (): Promise<Category[]> => {
     const response = await axiosPickleball.get("/api/category");
-    return response as unknown as Category[];
+    if (Array.isArray(response)) {
+      return response as Category[];
+    }
+    const typed = response as CategoryResponse;
+    return typed.data || [];
   },
 
   getCategoryById: async (id: string): Promise<Category> => {
     const response = await axiosPickleball.get(`/api/category/${id}`);
-    return response as unknown as Category;
+    if (response && typeof response === "object" && "data" in response) {
+      const typed = response as { data: Category };
+      return typed.data;
+    }
+    return response as Category;
   },
 };
 

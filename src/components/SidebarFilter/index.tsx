@@ -3,7 +3,7 @@ import {
   Box, Typography, Paper, Checkbox, FormControlLabel, Collapse,
 } from "@mui/material";
 import { ChevronDown, Minus as MinusIcon } from "lucide-react";
-import type { Category } from "../../services/categoryService";
+import type { Category } from "../../types";
 
 interface PriceRange {
   label: string;
