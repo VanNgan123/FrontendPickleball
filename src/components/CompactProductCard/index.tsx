@@ -71,8 +71,8 @@ const CompactProductCard = ({ product }: CompactProductCardProps) => {
 
         {/* Rating */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.5 }}>
-          <Rating value={5} readOnly size="small" sx={{ fontSize: "0.85rem", color: "#f59e0b" }} />
-          <Typography variant="caption" sx={{ color: "#888" }}>(7)</Typography>
+          <Rating value={0} readOnly size="small" sx={{ fontSize: "0.85rem", color: "#f59e0b" }} />
+          <Typography variant="caption" sx={{ color: "#888" }}>(0)</Typography>
         </Box>
 
         {/* Price */}
@@ -81,7 +81,7 @@ const CompactProductCard = ({ product }: CompactProductCardProps) => {
             component="span"
             sx={{ fontWeight: 700, color: "#E60023", fontSize: "0.95rem" }}
           >
-            {(product.salePrice || product.price).toLocaleString("vi-VN")}
+            {(product.salePrice || product.price).toLocaleString("vi-VN")}d
           </Typography>
           {product.salePrice && product.salePrice < product.price && (
             <Typography
@@ -91,7 +91,7 @@ const CompactProductCard = ({ product }: CompactProductCardProps) => {
                 fontSize: "0.78rem", ml: 1,
               }}
             >
-              {product.price.toLocaleString("vi-VN")}
+              {product.price.toLocaleString("vi-VN")}d
             </Typography>
           )}
         </Box>
