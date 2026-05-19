@@ -201,12 +201,12 @@ const Header = () => {
               DANH MỤC SẢN PHẨM
             </Box>
 
-            {/* <Button component={Link} to="/products" sx={{ color: "#FFF" }}>
+             <Button component={Link} to="/products" sx={{ color: "#FFF" }}>
               Sản phẩm
             </Button>
             <Button sx={{ color: "#020202ff" }}>Khuyến mãi</Button>
             <Button sx={{ color: "#020202ff" }}>Tin tức</Button>
-            <Button sx={{ color: "#020202ff" }}>Liên hệ</Button> */}
+            <Button sx={{ color: "#020202ff" }}>Liên hệ</Button>
           </Box>
         </Container>
       </Box>

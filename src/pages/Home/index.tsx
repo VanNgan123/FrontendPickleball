@@ -161,7 +161,7 @@ const Home = () => {
 
   return (
     <>
-      <MainLayout>
+      <MainLayout>      
         <Banner />
 
         {/* Main Content */}

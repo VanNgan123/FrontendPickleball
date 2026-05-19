@@ -15,13 +15,27 @@ export interface Product {
 }
 
 export interface ProductResponse {
+  status: string;
   message: string;
-  product: Product[];
+  data: Product[];
+}
+
+export interface ProductSearchResponse {
+  status: string;
+  message: string;
+  data: Product[];
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
+  };
 }
 
 export interface SingleProductResponse {
+  status: string;
   message: string;
-  product: Product;
+  data: Product;
 }
 
 // =============================================
