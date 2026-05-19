@@ -44,7 +44,7 @@ export const fetchAllProducts = createAsyncThunk<
 >("products/fetchAll", async (_, { rejectWithValue }) => {
   try {
     const data = await productService.getAllProducts();
-    return data.product || [];
+    return data.data || [];
   } catch (error: any) {
     return rejectWithValue(error?.message || "Không thể tải sản phẩm");
   }
@@ -58,7 +58,7 @@ export const fetchProductById = createAsyncThunk<
 >("products/fetchById", async (id, { rejectWithValue }) => {
   try {
     const data = await productService.getProductById(id);
-    return data.product;
+    return data.data;
   } catch (error: any) {
     return rejectWithValue(error?.message || "Không tìm thấy sản phẩm");
   }
@@ -73,7 +73,7 @@ export const searchProducts = createAsyncThunk<
   try {
     const data = await productService.searchAndFilterProducts(params);
     return {
-      products: data.products || [],
+      products: data.data || [],
       pagination: data.pagination || null,
     };
   } catch (error: any) {
