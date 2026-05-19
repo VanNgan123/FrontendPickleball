@@ -1,3 +1,13 @@
+export interface Category {
+  _id: string;
+  name: string;
+  slug: string;
+  parentId?: string | null;
+  image?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Product {
   _id: string;
   name: string;
@@ -6,10 +16,10 @@ export interface Product {
   price: number;
   salePrice?: number;
   brand?: string;
-  categories?: string[];
+  categories?: Category[] | string[];
   image: string[];
   stock: number;
-  specs?: Record<string, any>;
+  specs?: Record<string, unknown>;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -38,6 +48,12 @@ export interface SingleProductResponse {
   data: Product;
 }
 
+export interface CategoryResponse {
+  status: string;
+  message: string;
+  data: Category[];
+}
+
 // =============================================
 // Cart Types
 // =============================================
@@ -61,6 +77,7 @@ export interface Cart {
 }
 
 export interface CartResponse {
-  success: boolean;
+  status: string;
+  message: string;
   data: Cart;
 }
