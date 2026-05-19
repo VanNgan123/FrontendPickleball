@@ -17,7 +17,7 @@ import CompactProductCard from "../../components/CompactProductCard";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store/store";
 import { fetchAllProducts } from "../../store/slices/productSlice";
-import { fetchCategories } from "../../store/slices/categorySlices";
+import { fetchCategories } from "../../store/slices/categorySlice";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 

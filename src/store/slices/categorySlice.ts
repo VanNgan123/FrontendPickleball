@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import categoryService from "../../services/categoryService";
-import type { Category } from "../../services/categoryService";
+import type { Category } from "../../types";
 
 interface CategoryState {
   categories: Category[];
@@ -23,7 +23,7 @@ export const fetchCategories = createAsyncThunk<
     const data = await categoryService.getAllCategories();
     return data || [];
   } catch (error: any) {
-    return rejectWithValue(error?.message || "Không thể tải danh mục");
+    return rejectWithValue(error?.message || "Khong the tai danh muc");
   }
 });
 
@@ -43,7 +43,7 @@ const categorySlice = createSlice({
       })
       .addCase(fetchCategories.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Lỗi không xác định";
+        state.error = action.payload || "Loi khong xac dinh";
       });
   },
 });

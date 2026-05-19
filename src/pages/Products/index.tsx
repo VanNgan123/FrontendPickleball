@@ -11,7 +11,7 @@ import SortBar from "../../components/SortBar";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store/store";
 import { searchProducts, fetchAllProducts } from "../../store/slices/productSlice";
-import { fetchCategories } from "../../store/slices/categorySlices";
+import { fetchCategories } from "../../store/slices/categorySlice";
 
 const priceRanges = [
   { label: "0 đ - 1.000.000 đ", min: 0, max: 1000000 },
