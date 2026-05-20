@@ -13,7 +13,7 @@ const withAuthAdmin = <P extends object>(WrappedComponent: ComponentType<P>) => 
       return <Navigate to="/login" replace />;
     }
 
-    if (user?.role !== "admin") {
+    if (user?.role !== "admin" && user?.role !== "manager") {
       return <Navigate to="/unauthorized" replace />;
     }
 
