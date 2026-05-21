@@ -10,7 +10,6 @@ export interface ShippingAddress {
 }
 
 export interface CreateOrderPayload {
-  userId: string;
   items: {
     productId: string;
     qty: number;
@@ -22,7 +21,6 @@ export interface CreateOrderPayload {
 }
 
 export interface CreateOrderFromCartPayload {
-  userId: string;
   shippingAddress: ShippingAddress;
   paymentMethod: "COD" | "VNPay" | "Momo" | "BankTransfer";
 }
