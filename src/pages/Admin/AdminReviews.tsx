@@ -17,82 +17,82 @@ import {
   Rating,
   Avatar,
   Table,
-  export default AdminReviews;
-                            </Typography>
-                            {review.adminReply?.text && (
-                              <Chip
-                                label="Đã phản hồi"
-                                size="small"
-                                sx={{ height: 18, fontSize: "0.65rem", mt: 0.5, bgcolor: "rgba(59,130,246,0.1)", color: "#3b82f6" }}
-                              />
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              icon={<Box sx={{ color: status.color, display: "flex", ml: 0.5 }}>{status.icon}</Box>}
-                              label={status.label}
-                              size="small"
-                              sx={{ bgcolor: status.bg, color: status.color, fontWeight: 700, fontSize: "0.72rem", "& .MuiChip-icon": { ml: 0.8 } }}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="caption" sx={{ color: "#888" }}>
-                              {formatDate(review.createdAt)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="center">
-                            <Tooltip title="Xem & xử lý">
-                              <IconButton
-                                size="small"
-                                onClick={() => {
-                                  setSelectedReview(review);
-                                  setDetailOpen(true);
-                                }}
-                                sx={{ color: "#3b82f6", "&:hover": { bgcolor: "rgba(59,130,246,0.08)" } }}
-                              >
-                                <Eye size={16} />
-                              </IconButton>
-                            </Tooltip>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <TablePagination
-              component="div"
-              count={filtered.length}
-              page={page}
-              onPageChange={(_, p) => setPage(p)}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={(e) => {
-                setRowsPerPage(Number(e.target.value));
-                setPage(0);
-              }}
-              rowsPerPageOptions={[5, 10, 25]}
-              labelRowsPerPage="Hiển thị:"
-              labelDisplayedRows={({ from, to, count }) => `${from}–${to} / ${count}`}
-              sx={{ borderTop: "1px solid #f0f0f0" }}
-            />
-          </>
-        )}
-      </Paper>
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+} from "@mui/material";
+import { Search, Eye, Trash2, X, Star, CheckCircle2, XCircle, Clock, MessageSquare } from "lucide-react";
+import AdminLayout from "../../layout/AdminLayout/AdminLayout";
+import axiosPickleball from "../../api/axiosPickleball";
+import toast from "react-hot-toast";
 
-      <ReviewDetailDialog
-        open={detailOpen}
-        onClose={() => setDetailOpen(false)}
-        review={selectedReview}
-        onStatusChange={handleStatusChange}
-        onReply={handleReply}
-        onDelete={handleDelete}
-      />
-    </AdminLayout>
-  );
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
+const getImageUrl = (img?: string) => {
+  if (!img) return undefined;
+  if (img.startsWith("http")) return img;
+  return `${API_URL}${img.startsWith("/") ? "" : "/"}${img}`;
 };
 
-export default AdminReviews;
+const formatDate = (d: string) =>
+  new Date(d).toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
+  pending: { label: "Chờ duyệt", color: "#f59e0b", bg: "rgba(245,158,11,0.1)", icon: <Clock size={13} /> },
+  approved: { label: "Đã duyệt", color: "#22c55e", bg: "rgba(34,197,94,0.1)", icon: <CheckCircle2 size={13} /> },
+  rejected: { label: "Từ chối", color: "#ef4444", bg: "rgba(239,68,68,0.1)", icon: <XCircle size={13} /> },
+};
+
+interface Review {
+  _id: string;
+  productId?: { _id: string; name: string; image: string[] };
+  userId?: { _id: string; name: string; email: string };
+  rating: number;
+  comment: string;
+  images?: string[];
+  status: "pending" | "approved" | "rejected";
+  adminReply?: { text: string; replyAt: string };
+  helpful: number;
+  createdAt: string;
+}
+
+// =============================================
+// Review Detail Dialog
+// =============================================
+const ReviewDetailDialog = ({
+  open,
+  onClose,
+  review,
+  onStatusChange,
+  onReply,
+  onDelete,
+}: {
+  open: boolean;
+  onClose: () => void;
+  review: Review | null;
+  onStatusChange: (id: string, status: string) => Promise<void>;
+  onReply: (id: string, reply: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}) => {
+  const [replyText, setReplyText] = useState("");
+  const [updating, setUpdating] = useState(false);
+  const [replying, setReplying] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    if (review) setReplyText(review.adminReply?.text || "");
+  }, [review]);
+
+  if (!review) return null;
   const status = STATUS_CONFIG[review.status] || STATUS_CONFIG.pending;
 
   const handleStatusChange = async (newStatus: string) => {

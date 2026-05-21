@@ -400,9 +400,11 @@ const AdminOrders = () => {
           </Typography>
         </Box>
         <Tooltip title="Làm mới">
-          <IconButton onClick={loadOrders} disabled={loading} sx={{ color: "#555" }}>
-            <RefreshCw size={18} />
-          </IconButton>
+          <span>
+            <IconButton onClick={loadOrders} disabled={loading} sx={{ color: "#555" }}>
+              <RefreshCw size={18} />
+            </IconButton>
+          </span>
         </Tooltip>
       </Box>
 
