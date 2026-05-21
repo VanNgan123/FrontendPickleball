@@ -204,7 +204,6 @@ const Checkout = () => {
     try {
       setSubmitting(true);
       const result = await orderService.createOrderFromCart({
-        userId: user!.id,
         shippingAddress: form,
         paymentMethod,
       });
