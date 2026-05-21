@@ -2,20 +2,15 @@ import axiosPickleball from "../api/axiosPickleball";
 import type { CartResponse } from "../types";
 
 const cartService = {
-  // Lấy giỏ hàng theo userId
-  getCart: async (userId: string): Promise<CartResponse> => {
-    const response = await axiosPickleball.get(`/api/cart/${userId}`);
+  // Lấy giỏ hàng của user đang đăng nhập
+  getCart: async (): Promise<CartResponse> => {
+    const response = await axiosPickleball.get("/api/cart/me");
     return response as unknown as CartResponse;
   },
 
   // Thêm sản phẩm vào giỏ
-  addToCart: async (
-    userId: string,
-    productId: string,
-    qty: number
-  ): Promise<CartResponse> => {
+  addToCart: async (productId: string, qty: number): Promise<CartResponse> => {
     const response = await axiosPickleball.post("/api/cart", {
-      userId,
       productId,
       qty,
     });
@@ -24,11 +19,10 @@ const cartService = {
 
   // Cập nhật số lượng
   updateCartItem: async (
-    userId: string,
     productId: string,
     qty: number
   ): Promise<CartResponse> => {
-    const response = await axiosPickleball.put(`/api/cart/${userId}`, {
+    const response = await axiosPickleball.put("/api/cart", {
       productId,
       qty,
     });
@@ -36,21 +30,14 @@ const cartService = {
   },
 
   // Xóa 1 sản phẩm
-  removeFromCart: async (
-    userId: string,
-    productId: string
-  ): Promise<CartResponse> => {
-    const response = await axiosPickleball.delete(
-      `/api/cart/${userId}/${productId}`
-    );
+  removeFromCart: async (productId: string): Promise<CartResponse> => {
+    const response = await axiosPickleball.delete(`/api/cart/${productId}`);
     return response as unknown as CartResponse;
   },
 
   // Xóa toàn bộ giỏ
-  clearCart: async (userId: string): Promise<CartResponse> => {
-    const response = await axiosPickleball.delete(
-      `/api/cart/clear/${userId}`
-    );
+  clearCart: async (): Promise<CartResponse> => {
+    const response = await axiosPickleball.delete("/api/cart/clear/all");
     return response as unknown as CartResponse;
   },
 };
