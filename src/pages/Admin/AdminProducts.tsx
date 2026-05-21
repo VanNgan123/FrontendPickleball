@@ -59,9 +59,9 @@ interface Product {
   categories: any[];
   image: string[];
   description?: string;
+  specs?: Record<string, any>;
   createdAt: string;
 }
-
 interface Category {
   _id: string;
   name: string;
@@ -504,8 +504,8 @@ const AdminProducts = () => {
         axiosPickleball.get("/api/products") as Promise<any>,
         axiosPickleball.get("/api/category") as Promise<any>,
       ]);
-      setProducts(pRes?.product || []);
-      setCategories(Array.isArray(cRes) ? cRes : []);
+      setProducts(pRes?.data || []);
+      setCategories(Array.isArray(cRes) ? cRes : cRes?.data || []);
     } catch {
       toast.error("Không thể tải dữ liệu");
     } finally {

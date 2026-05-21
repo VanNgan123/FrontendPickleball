@@ -162,7 +162,7 @@ const AdminDashboard = () => {
       ]);
 
       const orders: any[] = ordersRes?.data || [];
-      const products: any[] = productsRes?.product || [];
+      const products: any[] = productsRes?.data || [];
       const reviews: any[] = reviewsRes?.data || [];
 
       const totalRevenue = orders
