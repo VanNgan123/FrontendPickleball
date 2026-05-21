@@ -20,12 +20,11 @@ const initialState: CartState = {
   error: null,
 };
 
-// Helper: lấy userId từ state
-const getUserId = (getState: () => unknown): string => {
+// Helper: kiểm tra đã đăng nhập
+const ensureAuthenticated = (getState: () => unknown): void => {
   const state = getState() as RootState;
   const userId = state.auth.user?.id;
   if (!userId) throw new Error("Vui lòng đăng nhập để sử dụng giỏ hàng");
-  return userId;
 };
 
 // =============================================
@@ -39,8 +38,8 @@ export const fetchCart = createAsyncThunk<
   { rejectValue: string }
 >("cart/fetch", async (_, { rejectWithValue, getState }) => {
   try {
-    const userId = getUserId(getState);
-    const data = await cartService.getCart(userId);
+    ensureAuthenticated(getState);
+    const data = await cartService.getCart();
     return data.data?.items || [];
   } catch (error: any) {
     return rejectWithValue(error?.message || "Không thể tải giỏ hàng");
@@ -54,8 +53,8 @@ export const addToCart = createAsyncThunk<
   { rejectValue: string }
 >("cart/add", async ({ productId, qty }, { rejectWithValue, getState }) => {
   try {
-    const userId = getUserId(getState);
-    const data = await cartService.addToCart(userId, productId, qty);
+    ensureAuthenticated(getState);
+    const data = await cartService.addToCart(productId, qty);
     return data.data?.items || [];
   } catch (error: any) {
     return rejectWithValue(error?.message || "Thêm vào giỏ thất bại");
@@ -71,8 +70,8 @@ export const updateCartItem = createAsyncThunk<
   "cart/update",
   async ({ productId, qty }, { rejectWithValue, getState }) => {
     try {
-      const userId = getUserId(getState);
-      const data = await cartService.updateCartItem(userId, productId, qty);
+      ensureAuthenticated(getState);
+      const data = await cartService.updateCartItem(productId, qty);
       return data.data?.items || [];
     } catch (error: any) {
       return rejectWithValue(error?.message || "Cập nhật thất bại");
@@ -87,8 +86,8 @@ export const removeFromCart = createAsyncThunk<
   { rejectValue: string }
 >("cart/remove", async ({ productId }, { rejectWithValue, getState }) => {
   try {
-    const userId = getUserId(getState);
-    const data = await cartService.removeFromCart(userId, productId);
+    ensureAuthenticated(getState);
+    const data = await cartService.removeFromCart(productId);
     return data.data?.items || [];
   } catch (error: any) {
     return rejectWithValue(error?.message || "Xóa thất bại");
@@ -100,8 +99,8 @@ export const clearCart = createAsyncThunk<void, void, { rejectValue: string }>(
   "cart/clear",
   async (_, { rejectWithValue, getState }) => {
     try {
-      const userId = getUserId(getState);
-      await cartService.clearCart(userId);
+      ensureAuthenticated(getState);
+      await cartService.clearCart();
     } catch (error: any) {
       return rejectWithValue(error?.message || "Xóa giỏ thất bại");
     }
