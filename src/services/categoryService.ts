@@ -7,7 +7,7 @@ const categoryService = {
     if (Array.isArray(response)) {
       return response as Category[];
     }
-    const typed = response as CategoryResponse;
+    const typed = response as unknown as CategoryResponse;
     return typed.data || [];
   },
 
@@ -17,7 +17,7 @@ const categoryService = {
       const typed = response as { data: Category };
       return typed.data;
     }
-    return response as Category;
+    return response as unknown as Category;
   },
 };
 

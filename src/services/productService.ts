@@ -5,13 +5,13 @@ const productService = {
   // Lấy tất cả sản phẩm
   getAllProducts: async (): Promise<ProductResponse> => {
     const response = await axiosPickleball.get("/api/products");
-    return response as ProductResponse;
+    return response as unknown as ProductResponse;
   },
 
   // Lấy sản phẩm theo ID
   getProductById: async (id: string): Promise<SingleProductResponse> => {
     const response = await axiosPickleball.get(`/api/products/${id}`);
-    return response as SingleProductResponse;
+    return response as unknown as SingleProductResponse;
   },
 
   // Tìm kiếm và lọc sản phẩm
@@ -20,7 +20,7 @@ const productService = {
   ): Promise<ProductSearchResponse> => {
     const queryString = new URLSearchParams(params).toString();
     const response = await axiosPickleball.get(`/api/products/search?${queryString}`);
-    return response as ProductSearchResponse;
+    return response as unknown as ProductSearchResponse;
   },
 };
 
