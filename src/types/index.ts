@@ -77,7 +77,7 @@ export interface Cart {
 }
 
 export interface CartResponse {
-  status: string;
-  message: string;
+  success: boolean;
+  message?: string;
   data: Cart;
 }
