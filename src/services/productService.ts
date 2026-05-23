@@ -2,9 +2,14 @@ import axiosPickleball from "../api/axiosPickleball";
 import type { ProductResponse, ProductSearchResponse, SingleProductResponse } from "../types";
 
 const productService = {
-  // Lấy tất cả sản phẩm
-  getAllProducts: async (): Promise<ProductResponse> => {
-    const response = await axiosPickleball.get("/api/products");
+  // Lấy sản phẩm có phân trang
+  getAllProducts: async (params?: { page?: number; limit?: number }): Promise<ProductResponse> => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set("page", String(params.page));
+    if (params?.limit !== undefined) query.set("limit", String(params.limit));
+    const queryString = query.toString();
+    const url = queryString ? `/api/products?${queryString}` : "/api/products";
+    const response = await axiosPickleball.get(url);
     return response as unknown as ProductResponse;
   },
 

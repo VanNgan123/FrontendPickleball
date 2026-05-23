@@ -28,6 +28,12 @@ export interface ProductResponse {
   status: string;
   message: string;
   data: Product[];
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
+  };
 }
 
 export interface ProductSearchResponse {

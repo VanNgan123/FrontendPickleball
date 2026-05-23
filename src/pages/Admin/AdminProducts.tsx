@@ -501,7 +501,7 @@ const AdminProducts = () => {
     try {
       setLoading(true);
       const [pRes, cRes] = await Promise.all([
-        axiosPickleball.get("/api/products") as Promise<any>,
+        axiosPickleball.get("/api/products?limit=0") as Promise<any>,
         axiosPickleball.get("/api/category") as Promise<any>,
       ]);
       setProducts(pRes?.data || []);

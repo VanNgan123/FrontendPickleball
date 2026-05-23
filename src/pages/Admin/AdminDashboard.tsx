@@ -157,7 +157,7 @@ const AdminDashboard = () => {
 
       const [ordersRes, productsRes, reviewsRes] = await Promise.all([
         axiosPickleball.get("/api/orders") as Promise<any>,
-        axiosPickleball.get("/api/products") as Promise<any>,
+        axiosPickleball.get("/api/products?limit=0") as Promise<any>,
         axiosPickleball.get("/api/reviews") as Promise<any>,
       ]);
 

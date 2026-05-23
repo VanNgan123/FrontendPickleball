@@ -42,7 +42,7 @@ const Products = () => {
 
   useEffect(() => {
     dispatch(fetchCategories());
-    dispatch(fetchAllProducts());
+    dispatch(fetchAllProducts({ limit: 0 }));
   }, [dispatch]);
 
   useEffect(() => {
