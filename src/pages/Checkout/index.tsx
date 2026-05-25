@@ -230,12 +230,12 @@ const Checkout = () => {
   const textFieldSx = {
     "& .MuiOutlinedInput-root": {
       borderRadius: 2,
-      bgcolor: "#fafafa",
-      "& fieldset": { borderColor: "#e0e0e0" },
-      "&:hover fieldset": { borderColor: "#E60023" },
-      "&.Mui-focused fieldset": { borderColor: "#E60023" },
+      bgcolor: "#f8fafc",
+      "& fieldset": { borderColor: "#e2e8f0" },
+      "&:hover fieldset": { borderColor: "#08222f" },
+      "&.Mui-focused fieldset": { borderColor: "#08222f" },
     },
-    "& .MuiInputLabel-root.Mui-focused": { color: "#E60023" },
+    "& .MuiInputLabel-root.Mui-focused": { color: "#08222f" },
   };
 
   // Loading
@@ -264,11 +264,11 @@ const Checkout = () => {
           <ShoppingBag size={64} color="#ddd" style={{ marginBottom: 16 }} />
           <Typography
             variant="h5"
-            sx={{ fontWeight: 700, color: "#1a1a1a", mb: 1 }}
+            sx={{ fontWeight: 700, color: "#1a1a2e", mb: 1 }}
           >
             Giỏ hàng trống
           </Typography>
-          <Typography variant="body2" sx={{ color: "#888", mb: 3 }}>
+          <Typography variant="body2" sx={{ color: "#64748b", mb: 3 }}>
             Vui lòng thêm sản phẩm vào giỏ hàng trước khi thanh toán
           </Typography>
           <Button
@@ -297,7 +297,7 @@ const Checkout = () => {
             startIcon={<ArrowLeft size={16} />}
             onClick={() => navigate("/cart")}
             sx={{
-              color: "#666",
+              color: "#64748b",
               fontWeight: 600,
               fontSize: "0.85rem",
               "&:hover": { color: "#E60023", bgcolor: "transparent" },
@@ -305,12 +305,12 @@ const Checkout = () => {
           >
             Quay lại giỏ hàng
           </Button>
-          <Typography variant="body2" sx={{ color: "#ccc" }}>
+          <Typography variant="body2" sx={{ color: "#94a3b8" }}>
             |
           </Typography>
           <Typography
             variant="body2"
-            sx={{ color: "#1a1a1a", fontWeight: 700 }}
+            sx={{ color: "#1a1a2e", fontWeight: 700 }}
           >
             Thanh toán
           </Typography>
@@ -409,7 +409,7 @@ const Checkout = () => {
                 <MapPin size={18} color="#E60023" />
                 <Typography
                   variant="subtitle1"
-                  sx={{ fontWeight: 800, color: "#1a1a1a" }}
+                  sx={{ fontWeight: 800, color: "#1a1a2e" }}
                 >
                   THÔNG TIN GIAO HÀNG
                 </Typography>
@@ -542,7 +542,7 @@ const Checkout = () => {
                 <CreditCard size={18} color="#E60023" />
                 <Typography
                   variant="subtitle1"
-                  sx={{ fontWeight: 800, color: "#1a1a1a" }}
+                  sx={{ fontWeight: 800, color: "#1a1a2e" }}
                 >
                   PHƯƠNG THỨC THANH TOÁN
                 </Typography>
@@ -595,11 +595,11 @@ const Checkout = () => {
                               <Box>
                                 <Typography
                                   variant="body2"
-                                  sx={{ fontWeight: 700, color: "#1a1a1a" }}
+                                  sx={{ fontWeight: 700, color: "#1a1a2e" }}
                                 >
                                   {method.label}
                                 </Typography>
-                                <Typography variant="caption" sx={{ color: "#888" }}>
+                                <Typography variant="caption" sx={{ color: "#64748b" }}>
                                   {method.desc}
                                 </Typography>
                               </Box>
@@ -629,7 +629,7 @@ const Checkout = () => {
               >
                 <Typography
                   variant="subtitle1"
-                  sx={{ fontWeight: 800, color: "#1a1a1a", mb: 2 }}
+                  sx={{ fontWeight: 800, color: "#08222f", mb: 2 }}
                 >
                   ĐƠN HÀNG CỦA BẠN
                 </Typography>
@@ -693,7 +693,7 @@ const Checkout = () => {
                         >
                           {item.productId.name}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: "#888" }}>
+                        <Typography variant="caption" sx={{ color: "#64748b" }}>
                           {formatPrice(item.productId.salePrice || item.productId.price)} x
                           {item.qty}
                         </Typography>
@@ -723,8 +723,8 @@ const Checkout = () => {
                   }}
                 >
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Tag size={16} color="#666" />
-                    <Typography variant="body2" sx={{ color: "#666" }}>
+                    <Tag size={16} color="#64748b" />
+                    <Typography variant="body2" sx={{ color: "#64748b" }}>
                       Mã giảm giá
                     </Typography>
                   </Box>
@@ -735,7 +735,7 @@ const Checkout = () => {
                       sx={{ bgcolor: "#E6F4FF", color: "#0F62FE" }}
                     />
                   ) : (
-                    <Typography variant="body2" sx={{ color: "#aaa" }}>
+                    <Typography variant="body2" sx={{ color: "#94a3b8" }}>
                       Không áp dụng
                     </Typography>
                   )}
@@ -744,7 +744,7 @@ const Checkout = () => {
                 {/* Price summary */}
                 <Box sx={{ mt: 2 }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                    <Typography variant="body2" sx={{ color: "#666" }}>
+                    <Typography variant="body2" sx={{ color: "#64748b" }}>
                       Tạm tính ({totalItems} SP)
                     </Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
@@ -779,7 +779,7 @@ const Checkout = () => {
                 <Divider sx={{ my: 2 }} />
 
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#1a1a2e" }}>
                     Tổng cộng
                   </Typography>
                   <Typography variant="h6" sx={{ fontWeight: 900, color: "#E60023" }}>
@@ -815,7 +815,7 @@ const Checkout = () => {
                 elevation={0}
                 sx={{ border: "1px dashed #eee", borderRadius: 2, p: 2.5, bgcolor: "#fafafa" }}
               >
-                <Typography variant="body2" sx={{ color: "#666", lineHeight: 1.6 }}>
+                <Typography variant="body2" sx={{ color: "#64748b", lineHeight: 1.6 }}>
                   Bằng việc bấm <b>Đặt hàng</b>, bạn đồng ý với điều khoản và chính sách
                   của chúng tôi.
                 </Typography>

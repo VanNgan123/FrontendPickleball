@@ -36,15 +36,18 @@ const initialState: ProductState = {
 // Async Thunks
 // =============================================
 
-/** Lấy tất cả sản phẩm */
+/** Lấy sản phẩm (có phân trang) */
 export const fetchAllProducts = createAsyncThunk<
-  Product[],
-  void,
+  { products: Product[]; pagination: ProductState["pagination"] },
+  { page?: number; limit?: number } | void,
   { rejectValue: string }
->("products/fetchAll", async (_, { rejectWithValue }) => {
+>("products/fetchAll", async (params, { rejectWithValue }) => {
   try {
-    const data = await productService.getAllProducts();
-    return data.data || [];
+    const data = await productService.getAllProducts(params || undefined);
+    return {
+      products: data.data || [],
+      pagination: data.pagination || null,
+    };
   } catch (error: any) {
     return rejectWithValue(error?.message || "Không thể tải sản phẩm");
   }
@@ -108,7 +111,8 @@ const productSlice = createSlice({
       })
       .addCase(fetchAllProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.products = action.payload;
+        state.products = action.payload.products;
+        state.pagination = action.payload.pagination;
       })
       .addCase(fetchAllProducts.rejected, (state, action) => {
         state.loading = false;

@@ -36,6 +36,8 @@ import {
 } from "recharts";
 import AdminLayout from "../../layout/AdminLayout/AdminLayout";
 import axiosPickleball from "../../api/axiosPickleball";
+import { DashboardSkeleton } from "../../components/Skeletons";
+
 
 const formatPrice = (price: number) => price.toLocaleString("vi-VN") + "đ";
 
@@ -157,7 +159,7 @@ const AdminDashboard = () => {
 
       const [ordersRes, productsRes, reviewsRes] = await Promise.all([
         axiosPickleball.get("/api/orders") as Promise<any>,
-        axiosPickleball.get("/api/products") as Promise<any>,
+        axiosPickleball.get("/api/products?limit=0") as Promise<any>,
         axiosPickleball.get("/api/reviews") as Promise<any>,
       ]);
 
@@ -242,9 +244,7 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <AdminLayout title="Dashboard">
-        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
-          <CircularProgress sx={{ color: "#E60023" }} />
-        </Box>
+        <DashboardSkeleton />
       </AdminLayout>
     );
   }

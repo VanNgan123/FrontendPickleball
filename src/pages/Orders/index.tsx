@@ -29,6 +29,8 @@ import orderService from "../../services/orderService";
 import type { Order } from "../../services/orderService";
 import MainLayout from "../../layout/MainLayout/MainLayout";
 import toast from "react-hot-toast";
+import { OrderCardSkeleton } from "../../components/Skeletons";
+
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -149,21 +151,21 @@ const OrderCard = ({
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
-            <Package size={14} color="#888" />
-            <Typography variant="caption" sx={{ color: "#888" }}>
+            <Package size={14} color="#64748b" />
+            <Typography variant="caption" sx={{ color: "#64748b" }}>
               Ma don:
             </Typography>
             <Typography
               variant="caption"
-              sx={{ fontWeight: 800, color: "#1a1a1a", fontFamily: "monospace" }}
+              sx={{ fontWeight: 800, color: "#1a1a2e", fontFamily: "monospace" }}
             >
               #{order._id.slice(-8).toUpperCase()}
             </Typography>
           </Box>
-          <Typography variant="caption" sx={{ color: "#bbb" }}>
+          <Typography variant="caption" sx={{ color: "#94a3b8" }}>
             |
           </Typography>
-          <Typography variant="caption" sx={{ color: "#888" }}>
+          <Typography variant="caption" sx={{ color: "#64748b" }}>
             {formatDate(order.createdAt)}
           </Typography>
         </Box>
@@ -216,7 +218,7 @@ const OrderCard = ({
                   variant="body2"
                   sx={{
                     fontWeight: 600,
-                    color: "#1a1a1a",
+                    color: "#1a1a2e",
                     fontSize: "0.85rem",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -227,7 +229,7 @@ const OrderCard = ({
                 >
                   {p.name}
                 </Typography>
-                <Typography variant="caption" sx={{ color: "#888" }}>
+                <Typography variant="caption" sx={{ color: "#64748b" }}>
                   {formatPrice(item.price)} x {item.qty}
                 </Typography>
               </Box>
@@ -242,7 +244,7 @@ const OrderCard = ({
         })}
 
         {order.items.length > 2 && (
-          <Typography variant="caption" sx={{ color: "#888", fontStyle: "italic" }}>
+          <Typography variant="caption" sx={{ color: "#64748b", fontStyle: "italic" }}>
             +{order.items.length - 2} san pham khac...
           </Typography>
         )}
@@ -263,8 +265,8 @@ const OrderCard = ({
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <MapPin size={13} color="#aaa" />
-            <Typography variant="caption" sx={{ color: "#666", fontSize: "0.78rem" }}>
+            <MapPin size={13} color="#94a3b8" />
+            <Typography variant="caption" sx={{ color: "#64748b", fontSize: "0.78rem" }}>
               {order.shippingAddress?.city || "-"}
             </Typography>
           </Box>
@@ -272,7 +274,7 @@ const OrderCard = ({
           <Chip
             label={PAYMENT_LABEL[order.paymentMethod] || order.paymentMethod}
             size="small"
-            sx={{ height: 20, fontSize: "0.68rem", bgcolor: "#f5f5f5", color: "#666" }}
+            sx={{ height: 20, fontSize: "0.68rem", bgcolor: "#f8fafc", color: "#64748b" }}
           />
         </Box>
 
@@ -291,13 +293,13 @@ const OrderCard = ({
             endIcon={<ChevronRight size={14} />}
             onClick={() => onViewDetail(order)}
             sx={{
-              color: "#002c4b",
+              color: "#08222f",
               fontWeight: 700,
               fontSize: "0.8rem",
-              border: "1px solid #002c4b",
+              border: "1px solid #08222f",
               borderRadius: 1.5,
               px: 1.5,
-              "&:hover": { bgcolor: "#002c4b", color: "white" },
+              "&:hover": { bgcolor: "#08222f", color: "white" },
             }}
           >
             Chi tiet
@@ -343,10 +345,10 @@ const OrderDetail = ({ order, onClose }: { order: Order; onClose: () => void }) 
         }}
       >
         <Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: "#1a1a1a" }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: "#1a1a2e" }}>
             CHI TIET DON HANG #{order._id.slice(-8).toUpperCase()}
           </Typography>
-          <Typography variant="caption" sx={{ color: "#888" }}>
+          <Typography variant="caption" sx={{ color: "#64748b" }}>
             {formatDate(order.createdAt)}
           </Typography>
         </Box>
@@ -356,7 +358,7 @@ const OrderDetail = ({ order, onClose }: { order: Order; onClose: () => void }) 
             size="small"
             sx={{ bgcolor: status.bg, color: status.color, fontWeight: 700, border: `1px solid ${status.border}` }}
           />
-          <Button size="small" onClick={onClose} sx={{ color: "#888", minWidth: 0, p: 0.5 }}>
+          <Button size="small" onClick={onClose} sx={{ color: "#64748b", minWidth: 0, p: 0.5 }}>
             x
           </Button>
         </Box>
@@ -420,7 +422,7 @@ const OrderDetail = ({ order, onClose }: { order: Order; onClose: () => void }) 
                   variant="body2"
                   sx={{
                     fontWeight: 600,
-                    color: "#1a1a1a",
+                    color: "#1a1a2e",
                     fontSize: "0.85rem",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -431,7 +433,7 @@ const OrderDetail = ({ order, onClose }: { order: Order; onClose: () => void }) 
                 >
                   {p.name}
                 </Typography>
-                <Typography variant="caption" sx={{ color: "#888" }}>
+                <Typography variant="caption" sx={{ color: "#64748b" }}>
                   Don gia: {formatPrice(item.price)}
                 </Typography>
               </Box>
@@ -456,11 +458,11 @@ const OrderDetail = ({ order, onClose }: { order: Order; onClose: () => void }) 
               Dia chi giao hang
             </Typography>
             <Box sx={{ p: 2, bgcolor: "#fafafa", borderRadius: 1.5, border: "1px solid #f0f0f0" }}>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: "#1a1a1a", mb: 0.3 }}>
+              <Typography variant="body2" sx={{ fontWeight: 700, color: "#1a1a2e", mb: 0.3 }}>
                 {addr.fullName}
               </Typography>
-              <Typography variant="body2" sx={{ color: "#555", mb: 0.3 }}>{addr.phone}</Typography>
-              <Typography variant="body2" sx={{ color: "#555" }}>
+              <Typography variant="body2" sx={{ color: "#64748b", mb: 0.3 }}>{addr.phone}</Typography>
+              <Typography variant="body2" sx={{ color: "#64748b" }}>
                 {addr.address}, {addr.ward}, {addr.district}, {addr.city}
               </Typography>
             </Box>
@@ -476,7 +478,7 @@ const OrderDetail = ({ order, onClose }: { order: Order; onClose: () => void }) 
             <Box sx={{ p: 2, bgcolor: "#fafafa", borderRadius: 1.5, border: "1px solid #f0f0f0" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.8 }}>
                 <Typography variant="caption" sx={{ color: "#888" }}>Phuong thuc</Typography>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: "#1a1a1a" }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: "#1a1a2e" }}>
                   {PAYMENT_LABEL[order.paymentMethod] || order.paymentMethod}
                 </Typography>
               </Box>
@@ -488,7 +490,7 @@ const OrderDetail = ({ order, onClose }: { order: Order; onClose: () => void }) 
               </Box>
               <Divider sx={{ my: 0.8 }} />
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: "#1a1a1a" }}>Tong cong</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: "#1a1a2e" }}>Tong cong</Typography>
                 <Typography variant="body2" sx={{ fontWeight: 900, color: "#E60023" }}>
                   {formatPrice(order.total)}
                 </Typography>
@@ -542,9 +544,16 @@ const Orders = () => {
   if (loading) {
     return (
       <MainLayout>
-        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
-          <CircularProgress sx={{ color: "#E60023" }} />
-        </Box>
+        <Container maxWidth="lg" sx={{ py: 4, pb: 8 }}>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
+            <Typography variant="h5" sx={{ fontWeight: 900, color: "#1a1a2e" }}>
+              Don hang cua toi
+            </Typography>
+          </Box>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <OrderCardSkeleton key={i} />
+          ))}
+        </Container>
       </MainLayout>
     );
   }
@@ -560,7 +569,7 @@ const Orders = () => {
             variant="outlined"
             startIcon={<RefreshCw size={16} />}
             onClick={loadOrders}
-            sx={{ borderColor: "#002c4b", color: "#002c4b", fontWeight: 700 }}
+            sx={{ borderColor: "#08222f", color: "#08222f", fontWeight: 700 }}
           >
             Lam moi
           </Button>
@@ -578,8 +587,8 @@ const Orders = () => {
             sx={{
               px: 2,
               "& .MuiTab-root": { textTransform: "none", fontWeight: 700 },
-              "& .Mui-selected": { color: "#E60023" },
-              "& .MuiTabs-indicator": { bgcolor: "#E60023" },
+              "& .Mui-selected": { color: "#08222f" },
+              "& .MuiTabs-indicator": { bgcolor: "#08222f" },
             }}
           >
             {TABS.map((tab) => (
@@ -604,10 +613,10 @@ const Orders = () => {
             }}
           >
             <ShoppingBag size={42} color="#ccc" style={{ marginBottom: 12 }} />
-            <Typography variant="h6" sx={{ color: "#888", fontWeight: 700, mb: 1 }}>
+            <Typography variant="h6" sx={{ color: "#64748b", fontWeight: 700, mb: 1 }}>
               Khong co don hang
             </Typography>
-            <Typography variant="body2" sx={{ color: "#aaa" }}>
+            <Typography variant="body2" sx={{ color: "#94a3b8" }}>
               Ban chua co don hang nao o trang thai nay
             </Typography>
           </Paper>
