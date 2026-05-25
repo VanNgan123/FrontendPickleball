@@ -12,7 +12,7 @@ import SortBar from "../../components/SortBar";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store/store";
 import { searchProducts, fetchAllProducts } from "../../store/slices/productSlice";
-import { fetchCategories } from "../../store/slices/categorySlice";
+import { fetchCategories } from "../../store/slices/categorySlices";
 import { ShoppingBag } from "lucide-react";
 
 const priceRanges = [

@@ -11,6 +11,8 @@ import Profile from "../pages/Profile";
 import Orders from "../pages/Orders";
 import Unauthorized from "../pages/Unauthorized";
 import NotFound from "../pages/NotFound";
+import SearchResults from "../pages/SearchResults";
+import ScrollToTop from "../components/ScrollToTop";
 
 import withAuthHome from "../hocs/withAuthHome";
 import withAuthAdmin from "../hocs/withAuthAdmin";
@@ -34,6 +36,7 @@ const AppRouters = () => {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<HomeWithAuth />} />
         <Route path="/products" element={<Products />} />
@@ -45,6 +48,7 @@ const AppRouters = () => {
         <Route path="/order-success/:id" element={<OrderSuccess />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/search" element={<SearchResults />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         <Route path="/admin" element={<AdminDashboardWithAuth />} />

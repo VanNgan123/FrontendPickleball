@@ -17,19 +17,22 @@ import {
 import couponService from "../../services/couponService";
 import type { CalculateDiscountResult } from "../../services/couponService";
 import MainLayout from "../../layout/MainLayout/MainLayout";
+import { CartSkeleton } from "../../components/Skeletons";
+
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
-/* ─── design tokens (đồng bộ với Header #08222f / #002c4b / #E60023) ─── */
+/* ─── design tokens (đồng bộ toàn dự án) ─── */
 const T = {
-  navy: "#002c4b",
-  navyDark: "#08222f",
+  navy: "#08222f",
+  navyDark: "#061b25",
   red: "#E60023",
   redHover: "#c4001d",
-  text: "#1e293b",
+  text: "#1a1a2e",
   textSub: "#64748b",
+  textMuted: "#94a3b8",
   border: "#e2e8f0",
-  bgPage: "#f1f5f9",
+  bgPage: "#f8fafc",
   bgCard: "#ffffff",
   green: "#059669",
   greenBg: "#ecfdf5",
@@ -120,9 +123,9 @@ const Cart = () => {
   if (!isAuthenticated) return <EmptyState title="Vui lòng đăng nhập" sub="Đăng nhập để xem và quản lý giỏ hàng của bạn" btnText="Đăng nhập ngay" btnAction={() => navigate("/login")} />;
   if (loading) return (
     <MainLayout>
-      <Box sx={{ bgcolor: T.bgPage, minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <CircularProgress size={44} sx={{ color: T.navy }} />
-      </Box>
+      <Container maxWidth="lg" sx={{ py: 4, pb: 8 }}>
+        <CartSkeleton />
+      </Container>
     </MainLayout>
   );
   if (!items.length) return <EmptyState title="Giỏ hàng trống" sub="Hãy khám phá và thêm sản phẩm yêu thích vào giỏ hàng nhé!" btnText="Khám phá sản phẩm" btnAction={() => navigate("/")} />;

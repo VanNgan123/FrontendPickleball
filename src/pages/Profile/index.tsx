@@ -36,6 +36,8 @@ import userService from "../../services/userService";
 import type { UserProfile } from "../../services/userService";
 import MainLayout from "../../layout/MainLayout/MainLayout";
 import toast from "react-hot-toast";
+import { ProfileSkeleton } from "../../components/Skeletons";
+
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -51,7 +53,7 @@ const ROLE_MAP: Record<string, { label: string; color: string; bg: string }> = {
   customer: { label: "Khach hang", color: "#3b82f6", bg: "rgba(59,130,246,0.1)" },
   admin: { label: "Quan tri vien", color: "#E60023", bg: "rgba(230,0,35,0.1)" },
   manager: { label: "Quan ly", color: "#8b5cf6", bg: "rgba(139,92,246,0.1)" },
-  support: { label: "Ho tro", color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
+  support: { label: "Ho tro", color: "#ea580c", bg: "rgba(234,88,12,0.1)" },
 };
 
 // =============================================
@@ -91,12 +93,12 @@ const StatCard = ({
     }}
   >
     <Box sx={{ color: "#E60023" }}>{icon}</Box>
-    <Typography variant="h5" sx={{ fontWeight: 900, color: "#1a1a1a", lineHeight: 1 }}>
+    <Typography variant="h5" sx={{ fontWeight: 900, color: "#1a1a2e", lineHeight: 1 }}>
       {value}
     </Typography>
     <Typography
       variant="caption"
-      sx={{ color: "#888", fontWeight: 600, textAlign: "center" }}
+      sx={{ color: "#64748b", fontWeight: 600, textAlign: "center" }}
     >
       {label}
     </Typography>
@@ -221,27 +223,20 @@ const Profile = () => {
   const textFieldSx = {
     "& .MuiOutlinedInput-root": {
       borderRadius: 2,
-      bgcolor: "#fafafa",
-      "& fieldset": { borderColor: "#e0e0e0" },
-      "&:hover fieldset": { borderColor: "#E60023" },
-      "&.Mui-focused fieldset": { borderColor: "#E60023" },
+      bgcolor: "#f8fafc",
+      "& fieldset": { borderColor: "#e2e8f0" },
+      "&:hover fieldset": { borderColor: "#08222f" },
+      "&.Mui-focused fieldset": { borderColor: "#08222f" },
     },
-    "& .MuiInputLabel-root.Mui-focused": { color: "#E60023" },
+    "& .MuiInputLabel-root.Mui-focused": { color: "#08222f" },
   };
 
   if (pageLoading) {
     return (
       <MainLayout>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "60vh",
-          }}
-        >
-          <CircularProgress sx={{ color: "#E60023" }} />
-        </Box>
+        <Container maxWidth="lg" sx={{ py: 4, pb: 8 }}>
+          <ProfileSkeleton />
+        </Container>
       </MainLayout>
     );
   }
@@ -254,10 +249,10 @@ const Profile = () => {
     <MainLayout>
       <Container maxWidth="lg" sx={{ py: 4, pb: 8 }}>
         {/* Breadcrumb */}
-        <Typography variant="body2" sx={{ color: "#888", mb: 3 }}>
+        <Typography variant="body2" sx={{ color: "#64748b", mb: 3 }}>
           <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>Trang chu</span>
           {" / "}
-          <span style={{ fontWeight: 700, color: "#1a1a1a" }}>Tai khoan cua toi</span>
+          <span style={{ fontWeight: 700, color: "#1a1a2e" }}>Tai khoan cua toi</span>
         </Typography>
 
         <Grid container spacing={3}>
@@ -277,7 +272,7 @@ const Profile = () => {
                 sx={{
                   height: 80,
                   background:
-                    "linear-gradient(135deg, #08222f 0%, #002c4b 50%, #E60023 100%)",
+                    "linear-gradient(135deg, #08222f 0%, #0a3d5c 50%, #E60023 100%)",
                 }}
               />
 
@@ -336,7 +331,7 @@ const Profile = () => {
                   />
                 </Box>
 
-                <Typography variant="h6" sx={{ fontWeight: 800, color: "#1a1a1a", mb: 0.5 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: "#1a1a2e", mb: 0.5 }}>
                   {profile.name}
                 </Typography>
 
@@ -364,11 +359,11 @@ const Profile = () => {
                       key={idx}
                       sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}
                     >
-                      <Box sx={{ color: "#aaa", flexShrink: 0 }}>{item.icon}</Box>
+                      <Box sx={{ color: "#94a3b8", flexShrink: 0 }}>{item.icon}</Box>
                       <Typography
                         variant="body2"
                         sx={{
-                          color: item.value === "Chua cap nhat" ? "#bbb" : "#555",
+                          color: item.value === "Chua cap nhat" ? "#94a3b8" : "#64748b",
                           fontStyle: item.value === "Chua cap nhat" ? "italic" : "normal",
                           fontSize: "0.85rem",
                           wordBreak: "break-all",
@@ -380,8 +375,8 @@ const Profile = () => {
                   ))}
 
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-                    <Shield size={15} color="#aaa" />
-                    <Typography variant="body2" sx={{ color: "#555", fontSize: "0.85rem" }}>
+                    <Shield size={15} color="#94a3b8" />
+                    <Typography variant="body2" sx={{ color: "#64748b", fontSize: "0.85rem" }}>
                       Tham gia: {new Date(profile.createdAt).toLocaleDateString("vi-VN", {
                         month: "long",
                         year: "numeric",
@@ -453,8 +448,8 @@ const Profile = () => {
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <User size={18} color="#E60023" />
-                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#1a1a1a" }}>
+                  <User size={18} color="#08222f" />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#1a1a2e" }}>
                     THONG TIN CA NHAN
                   </Typography>
                 </Box>
@@ -464,7 +459,7 @@ const Profile = () => {
                     size="small"
                     startIcon={<Edit3 size={14} />}
                     onClick={() => setEditMode(true)}
-                    sx={{ color: "#E60023", fontWeight: 700 }}
+                    sx={{ color: "#08222f", fontWeight: 700 }}
                   >
                     Chinh sua
                   </Button>
@@ -474,7 +469,7 @@ const Profile = () => {
                       size="small"
                       startIcon={<X size={14} />}
                       onClick={handleCancelEdit}
-                      sx={{ color: "#888", fontWeight: 700 }}
+                      sx={{ color: "#64748b", fontWeight: 700 }}
                     >
                       Huy
                     </Button>
