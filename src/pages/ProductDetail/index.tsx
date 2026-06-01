@@ -49,7 +49,7 @@ const ProductDetail = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     if (id) dispatch(fetchProductById(id));
-    dispatch(fetchAllProducts({ limit: 0 }));
+    dispatch(fetchAllProducts({ limit: 1000 }));
     return () => { dispatch(clearCurrentProduct()); };
   }, [id, dispatch]);
 

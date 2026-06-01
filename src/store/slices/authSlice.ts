@@ -99,6 +99,33 @@ export const refreshAccessToken = createAsyncThunk<
   }
 });
 
+/** Lấy profile user (bao gồm avatar) */
+export const fetchUserProfile = createAsyncThunk<
+  { user: AuthUser },
+  void,
+  { rejectValue: string }
+>("auth/fetchProfile", async (_, { rejectWithValue }) => {
+  try {
+    const data = await authService.getProfile();
+    const user: AuthUser = {
+      id: (data as any).data?._id || (data as any).data?.id || (data as any)._id || (data as any).id,
+      name: (data as any).data?.name || (data as any).name,
+      email: (data as any).data?.email || (data as any).email,
+      role: (data as any).data?.role || (data as any).role,
+      avatar: (data as any).data?.avatar || (data as any).avatar,
+    };
+    // Cập nhật localStorage
+    localStorage.setItem("user", JSON.stringify(user));
+    return { user };
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      "Lấy profile thất bại";
+    return rejectWithValue(message);
+  }
+});
+
 // =============================================
 // Slice
 // =============================================
@@ -167,6 +194,12 @@ const authSlice = createSlice({
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("user");
+      });
+
+    // Fetch Profile
+    builder
+      .addCase(fetchUserProfile.fulfilled, (state, action) => {
+        state.user = action.payload.user;
       });
   },
 });

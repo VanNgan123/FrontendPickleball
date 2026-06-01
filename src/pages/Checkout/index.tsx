@@ -127,14 +127,16 @@ const Checkout = () => {
     (state: RootState) => state.auth
   );
 
-  // Nhan thong tin coupon tu trang Cart
+  // Nhan thong tin coupon + selectedIds tu trang Cart
   const locationState = location.state as {
+    selectedIds?: string[];
     couponCode?: string;
     discountAmount?: number;
     finalTotal?: number;
     subtotal?: number;
   } | null;
 
+  const selectedIds = locationState?.selectedIds || [];
   const couponCode = locationState?.couponCode || null;
   const discountAmount = locationState?.discountAmount || 0;
 
@@ -163,15 +165,20 @@ const Checkout = () => {
     }
   }, [isAuthenticated, dispatch]);
 
-  // Tinh tien
-  const subtotal = items.reduce((sum, item) => {
+  // Loc chi nhung san pham da chon o trang Cart
+  const checkoutItems = selectedIds.length > 0
+    ? items.filter(item => selectedIds.includes(item.productId?._id))
+    : items;
+
+  // Tinh tien chi tren san pham da chon
+  const subtotal = checkoutItems.reduce((sum, item) => {
     const price = item.productId.salePrice || item.productId.price;
     return sum + price * item.qty;
   }, 0);
 
   const shippingFee = subtotal >= 1000000 ? 0 : 30000;
   const finalTotal = subtotal - discountAmount + shippingFee;
-  const totalItems = items.reduce((sum, item) => sum + item.qty, 0);
+  const totalItems = checkoutItems.reduce((sum, item) => sum + item.qty, 0);
 
   // Handlers
   const handleFormChange = (field: keyof ShippingAddress, value: string) => {
@@ -190,8 +197,8 @@ const Checkout = () => {
       return;
     }
 
-    if (items.length === 0) {
-      toast.error("Giỏ hàng trống");
+    if (checkoutItems.length === 0) {
+      toast.error("Chưa chọn sản phẩm nào để thanh toán");
       return;
     }
 
@@ -203,13 +210,24 @@ const Checkout = () => {
 
     try {
       setSubmitting(true);
-      const result = await orderService.createOrderFromCart({
+
+      // Tao payload chi gom san pham da chon
+      const orderItems = checkoutItems.map(item => ({
+        productId: item.productId._id,
+        qty: item.qty,
+        price: item.productId.salePrice || item.productId.price,
+      }));
+
+      const result = await orderService.createOrder({
+        items: orderItems,
         shippingAddress: form,
         paymentMethod,
+        total: finalTotal,
       });
 
-      // Xoa gio hang khoi Redux
+      // Xoa gio hang khoi Redux va reload
       dispatch(resetCart());
+      dispatch(fetchCart());
 
       toast.success("Đặt hàng thành công! 🎉");
       navigate(`/order-success/${result.data._id}`, {
@@ -257,7 +275,7 @@ const Checkout = () => {
   }
 
   // Gio hang trong
-  if (!cartLoading && items.length === 0) {
+  if (!cartLoading && checkoutItems.length === 0) {
     return (
       <MainLayout>
         <Container maxWidth="md" sx={{ py: 10, textAlign: "center" }}>
@@ -636,7 +654,7 @@ const Checkout = () => {
 
                 {/* Items list */}
                 <Box sx={{ maxHeight: 280, overflowY: "auto", pr: 1 }}>
-                  {items.map((item) => (
+                  {checkoutItems.map((item) => (
                     <Box
                       key={item._id}
                       sx={{ display: "flex", gap: 2, mb: 2, alignItems: "center" }}
