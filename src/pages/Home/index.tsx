@@ -7,7 +7,7 @@ import {
 import Grid from "@mui/material/Grid";
 import {
   ChevronLeft, ChevronRight, Zap, Map as MapIcon, Phone, MessageCircle,
-  Shield, Truck, Headphones,
+  Shield, Truck, Headphones, Activity, CircleDot, Footprints, Layers, Shirt,
 } from "lucide-react";
 
 import Banner from "../../components/Banner";
@@ -18,6 +18,10 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store/store";
 import { fetchAllProducts } from "../../store/slices/productSlice";
 import { fetchCategories } from "../../store/slices/categorySlice";
+import banner1 from "../../assets/banner/banner1.jpg";
+import banner2 from "../../assets/banner/banner2.jpg";
+import banner3 from "../../assets/banner/banner3.jpg";
+import banner4 from "../../assets/banner/banner4.jpg";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -55,7 +59,7 @@ const ProductCarousel = ({
             variant="body2"
             onClick={onViewAll}
             sx={{
-              color: "#E60023", fontWeight: 600, cursor: "pointer",
+              color: "#0F766E", fontWeight: 600, cursor: "pointer",
               "&:hover": { textDecoration: "underline" },
             }}
           >
@@ -73,7 +77,7 @@ const ProductCarousel = ({
           sx={{
             position: "absolute", left: -16, top: "50%", transform: "translateY(-50%)",
             zIndex: 2, bgcolor: "white", boxShadow: 2,
-            "&:hover": { bgcolor: "#E60023", color: "white" },
+            "&:hover": { bgcolor: "#0F766E", color: "white" },
             transition: "all 0.3s ease", color: "#1a1a1a",
           }}
         >
@@ -98,12 +102,239 @@ const ProductCarousel = ({
           sx={{
             position: "absolute", right: -16, top: "50%", transform: "translateY(-50%)",
             zIndex: 2, bgcolor: "white", boxShadow: 2,
-            "&:hover": { bgcolor: "#E60023", color: "white" },
+            "&:hover": { bgcolor: "#0F766E", color: "white" },
             transition: "all 0.3s ease", color: "#1a1a1a",
           }}
         >
           <ChevronRight size={18} />
         </IconButton>
+      </Box>
+    </Box>
+  );
+};
+
+const categoryVisuals = [
+  { image: banner1, icon: Activity },
+  { image: banner3, icon: CircleDot },
+  { image: banner4, icon: Footprints },
+  { image: banner2, icon: Layers },
+  { image: banner1, icon: Shirt },
+];
+
+const CategoryShowcase = ({
+  categories,
+  products,
+  getImageUrl,
+  onSelect,
+}: {
+  categories: { _id: string; name: string; slug?: string; image?: string; parentId?: string | null }[];
+  products: any[];
+  getImageUrl: (imagePath?: string) => string;
+  onSelect: (categoryId: string) => void;
+}) => {
+  const displayCategories = categories.slice(0, 5);
+
+  if (displayCategories.length === 0) return null;
+
+  const normalize = (value?: string | null) => String(value || "").trim().toLowerCase();
+
+  const getProductCount = (category: { _id: string; name: string; slug?: string }) => {
+    const relatedCategories = categories.filter(
+      (item) => item._id === category._id || item.parentId === category._id
+    );
+
+    const relatedIds = new Set(relatedCategories.map((item) => item._id));
+    const relatedNames = new Set(relatedCategories.map((item) => normalize(item.name)));
+    const relatedSlugs = new Set(relatedCategories.map((item) => normalize(item.slug)));
+
+    return products.filter((product) =>
+      product.categories?.some((cat: any) => {
+        if (cat && typeof cat === "object") {
+          return (
+            relatedIds.has(cat._id) ||
+            relatedNames.has(normalize(cat.name)) ||
+            relatedSlugs.has(normalize(cat.slug))
+          );
+        }
+
+        const rawCategory = normalize(cat);
+        return (
+          relatedIds.has(String(cat)) ||
+          relatedNames.has(rawCategory) ||
+          relatedSlugs.has(rawCategory)
+        );
+      })
+    ).length;
+  };
+
+  return (
+    <Box sx={{ py: { xs: 5, md: 7 }, px: { xs: 0, md: 1 } }}>
+      <Box sx={{ textAlign: "center", maxWidth: 760, mx: "auto", mb: { xs: 3.5, md: 5 } }}>
+        <Typography
+          sx={{
+            color: "#58a700",
+            fontSize: 13,
+            fontWeight: 900,
+            letterSpacing: 3.2,
+            textTransform: "uppercase",
+            mb: 1.5,
+          }}
+        >
+          Sản phẩm đầu ngành
+        </Typography>
+        <Typography
+          component="h2"
+          sx={{
+            color: "#061b35",
+            fontSize: { xs: 32, md: 48 },
+            lineHeight: 1.08,
+            fontWeight: 950,
+            mb: 2,
+          }}
+        >
+          Danh Mục Đồ Chơi Pickleball
+        </Typography>
+        <Typography sx={{ color: "#64748b", fontSize: { xs: 15, md: 20 }, lineHeight: 1.55 }}>
+          Lên đồ chuẩn chỉ từ đầu đến gót chân với các phân nhóm chuyên sâu. Click vào danh mục để xem dải sản phẩm tương ứng.
+        </Typography>
+      </Box>
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(2, minmax(0, 1fr))",
+            md: "repeat(3, minmax(0, 1fr))",
+            lg: "repeat(5, minmax(0, 1fr))",
+          },
+          gap: { xs: 2, md: 3 },
+        }}
+      >
+        {displayCategories.map((category, index) => {
+          const visual = categoryVisuals[index % categoryVisuals.length];
+          const Icon = visual.icon;
+          const productCount = getProductCount(category);
+          const bgImage = category.image ? getImageUrl(category.image) : visual.image;
+
+          return (
+            <Box
+              key={category._id}
+              onClick={() => onSelect(category._id)}
+              sx={{
+                position: "relative",
+                minHeight: { xs: 260, md: 304 },
+                borderRadius: "22px",
+                overflow: "hidden",
+                cursor: "pointer",
+                isolation: "isolate",
+                boxShadow: "0 18px 34px rgba(15,23,42,0.12)",
+                transform: "translateY(0)",
+                transition: "transform 220ms ease, box-shadow 220ms ease",
+                "&:hover": {
+                  transform: "translateY(-10px)",
+                  boxShadow: "0 28px 48px rgba(15,23,42,0.18)",
+                },
+                "&:hover .category-showcase-icon": {
+                  bgcolor: "#84CC16",
+                  color: "#0F172A",
+                  transform: "translateY(-2px)",
+                },
+                "&:hover .category-showcase-image": {
+                  transform: "scale(1.06)",
+                },
+              }}
+            >
+              <Box
+                className="category-showcase-image"
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  backgroundImage: `url(${bgImage})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  transition: "transform 420ms ease",
+                  zIndex: -3,
+                }}
+              />
+              <Box
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  bgcolor: index === 2 ? "rgba(144, 202, 32, 0.72)" : "rgba(2, 8, 23, 0.2)",
+                  zIndex: -2,
+                }}
+              />
+              <Box
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  background:
+                    "linear-gradient(180deg, rgba(2,8,23,0.08) 0%, rgba(2,8,23,0.28) 42%, rgba(2,8,23,0.86) 100%)",
+                  zIndex: -1,
+                }}
+              />
+
+              <Box
+                className="category-showcase-icon"
+                sx={{
+                  position: "absolute",
+                  top: 24,
+                  right: 24,
+                  width: 56,
+                  height: 56,
+                  borderRadius: "14px",
+                  bgcolor: "rgba(15,23,42,0.58)",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backdropFilter: "blur(8px)",
+                  transition: "all 220ms ease",
+                }}
+              >
+                <Icon size={29} strokeWidth={2.4} />
+              </Box>
+
+              <Box sx={{ position: "absolute", left: 30, right: 24, bottom: 26 }}>
+                <Box
+                  sx={{
+                    width: "fit-content",
+                    px: 1.2,
+                    py: 0.55,
+                    mb: 1.2,
+                    borderRadius: "7px",
+                    bgcolor: "rgba(84, 141, 10, 0.72)",
+                    color: "#9cff1a",
+                    fontSize: 14,
+                    lineHeight: 1,
+                    fontWeight: 950,
+                  }}
+                >
+                  {productCount} Sản Phẩm
+                </Box>
+                <Typography
+                  sx={{
+                    color: "#fff",
+                    fontSize: { xs: 28, md: 30 },
+                    lineHeight: 1.06,
+                    fontWeight: 950,
+                    textShadow: "0 3px 12px rgba(0,0,0,0.28)",
+                    mb: 0.75,
+                  }}
+                >
+                  {category.name}
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                  <Typography sx={{ color: "#fff", fontSize: 15, fontWeight: 700 }}>
+                    Mua ngay
+                  </Typography>
+                  <ChevronRight size={17} color="#fff" />
+                </Box>
+              </Box>
+            </Box>
+          );
+        })}
       </Box>
     </Box>
   );
@@ -117,7 +348,7 @@ const Home = () => {
   const { categories } = useSelector((state: RootState) => state.categories);
 
   useEffect(() => {
-    dispatch(fetchAllProducts({ limit: 0 }));
+    dispatch(fetchAllProducts({ limit: 1000 }));
     dispatch(fetchCategories());
   }, [dispatch]);
 
@@ -161,11 +392,12 @@ const Home = () => {
 
   return (
     <>
-      <MainLayout>      
+      <MainLayout>
         <Banner />
 
         {/* Main Content */}
         <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
+
           {/* === TRUST BADGES === */}
           <Grid container spacing={2} sx={{ mb: 4 }}>
             {[
@@ -326,6 +558,14 @@ const Home = () => {
                   showViewAll={false}
                 />
               )}
+
+              {/* Showcase categories at the bottom, near the footer */}
+              <CategoryShowcase
+                categories={categories}
+                products={products}
+                getImageUrl={getImageUrl}
+                onSelect={(categoryId) => navigate(`/products?category=${categoryId}`)}
+              />
             </>
           )}
         </Container>
@@ -338,9 +578,9 @@ const Home = () => {
       }}>
         <Tooltip title="Tìm đường" placement="left">
           <Fab size="small" sx={{
-            bgcolor: "#E60023", color: "white",
-            "&:hover": { bgcolor: "#c4001d" },
-            boxShadow: "0 4px 12px rgba(230,0,35,0.4)",
+            bgcolor: "#0F766E", color: "white",
+            "&:hover": { bgcolor: "#0D5F59" },
+            boxShadow: "0 4px 12px rgba(15,118,110,0.32)",
           }}>
             <MapIcon size={20} />
           </Fab>

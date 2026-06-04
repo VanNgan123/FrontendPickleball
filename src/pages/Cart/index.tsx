@@ -353,7 +353,14 @@ const Cart = () => {
                     <Typography sx={{ fontWeight: 800, color: T.red, fontSize: "1.3rem" }}>{fmt(total)}</Typography>
                   </Box>
 
-                  <Button fullWidth onClick={() => navigate("/checkout")} disabled={selectedIds.length === 0}
+                  <Button fullWidth onClick={() => navigate("/checkout", {
+                      state: {
+                        selectedIds,
+                        couponCode: couponResult?.couponCode || null,
+                        discountAmount: discount,
+                        subtotal,
+                      },
+                    })} disabled={selectedIds.length === 0}
                     startIcon={<CreditCard size={18} />}
                     sx={{
                       bgcolor: T.red, color: "#fff", fontWeight: 700, py: 1.4,

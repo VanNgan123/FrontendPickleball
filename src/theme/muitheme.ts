@@ -3,20 +3,20 @@ import { createTheme } from "@mui/material/styles";
 const muiTheme = createTheme({
   palette: {
     primary: {
-      main: "#E60023", // đỏ chủ đạo
-      dark: "#c4001d",
+      main: "#0F766E",
+      dark: "#0D5F59",
     },
     secondary: {
-      main: "#08222f", // navy — đồng bộ Header
-      dark: "#061b25",
+      main: "#84CC16",
+      dark: "#65A30D",
     },
     background: {
-      default: "#f8fafc", // nền trang xám nhẹ
-      paper: "#ffffff",   // nền card/paper — trắng
+      default: "#F8FAFC",
+      paper: "#FFFFFF",
     },
     text: {
-      primary: "#1a1a2e",   // tối — dễ đọc trên nền sáng
-      secondary: "#64748b", // xám trung tính
+      primary: "#0F172A",
+      secondary: "#64748B",
     },
   },
 
@@ -47,10 +47,11 @@ const muiTheme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundImage: "none", // loại bỏ overlay gradient mặc định
+          backgroundImage: "none",
         },
       },
     },
   },
 });
+
 export default muiTheme;
