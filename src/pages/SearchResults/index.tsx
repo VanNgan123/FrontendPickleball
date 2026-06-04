@@ -25,7 +25,7 @@ const priceRanges = [
 const SearchResults = () => {
 	const navigate = useNavigate();
 	const dispatch = useDispatch<AppDispatch>();
-	const [searchParams, setSearchParams] = useSearchParams();
+	const [searchParams] = useSearchParams();
 
 	const keyword = searchParams.get("q") || "";
 	const { searchResults, searchLoading, pagination, products } = useSelector(

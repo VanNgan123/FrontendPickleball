@@ -13,8 +13,6 @@ import Unauthorized from "../pages/Unauthorized";
 import NotFound from "../pages/NotFound";
 import SearchResults from "../pages/SearchResults";
 import ScrollToTop from "../components/ScrollToTop";
-
-import withAuthHome from "../hocs/withAuthHome";
 import withAuthAdmin from "../hocs/withAuthAdmin";
 
 // Admin pages
@@ -26,7 +24,6 @@ import AdminCoupons from "../pages/Admin/AdminCoupons";
 import AdminReviews from "../pages/Admin/AdminReviews";
 
 const AppRouters = () => {
-  const HomeWithAuth = withAuthHome(Home);
   const AdminDashboardWithAuth = withAuthAdmin(AdminDashboard);
   const AdminProductsWithAuth = withAuthAdmin(AdminProducts);
   const AdminCategoriesWithAuth = withAuthAdmin(AdminCategories);
@@ -38,7 +35,7 @@ const AppRouters = () => {
     <BrowserRouter>
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<HomeWithAuth />} />
+        <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/login" element={<Login />} />
