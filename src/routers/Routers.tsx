@@ -12,6 +12,10 @@ import Orders from "../pages/Orders";
 import Unauthorized from "../pages/Unauthorized";
 import NotFound from "../pages/NotFound";
 import SearchResults from "../pages/SearchResults";
+import News from "../pages/News";
+import Courts from "../pages/Courts";
+import Support from "../pages/Support";
+import About from "../pages/About";
 import ScrollToTop from "../components/ScrollToTop";
 import withAuthAdmin from "../hocs/withAuthAdmin";
 
@@ -46,6 +50,10 @@ const AppRouters = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/search" element={<SearchResults />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/news" element={<News />} />
+        <Route path="/courts" element={<Courts />} />
+        <Route path="/support" element={<Support />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         <Route path="/admin" element={<AdminDashboardWithAuth />} />

@@ -16,16 +16,26 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
 
-const staticTopItems = [
-  { label: "Chỉ có trong hôm nay", icon: StarBorderRoundedIcon, path: "/products" },
-  { label: "Khuyến mãi", icon: LocalOfferOutlinedIcon, path: "/products" },
-  { label: "Có gì mới", icon: ChatBubbleOutlineRoundedIcon, path: "/products" },
+// Navigation item types:
+// - "filter": navigates to /products with query params (for product filtering/sorting)
+// - "route": navigates to a dedicated page
+interface NavItem {
+  label: string;
+  icon: typeof StarBorderRoundedIcon;
+  type: "filter" | "route";
+  path: string; // For "route" type: full path. For "filter" type: query string to append to /products
+}
+
+const staticTopItems: NavItem[] = [
+  { label: "Chỉ có trong hôm nay", icon: StarBorderRoundedIcon, type: "filter", path: "/products?tag=today" },
+  { label: "Khuyến mãi", icon: LocalOfferOutlinedIcon, type: "filter", path: "/products?promo=true" },
+  { label: "Có gì mới", icon: ChatBubbleOutlineRoundedIcon, type: "filter", path: "/products?sort=newest" },
 ];
 
-const staticBottomItems = [
-  { label: "Tin tức Pickleball", icon: ArticleOutlinedIcon, path: "/products" },
-  { label: "Tìm sân chơi Pickleball", icon: PlaceOutlinedIcon, path: "/products" },
-  { label: "Liên hệ | Trợ giúp", icon: HeadsetMicOutlinedIcon, path: "/products" },
+const staticBottomItems: NavItem[] = [
+  { label: "Tin tức Pickleball", icon: ArticleOutlinedIcon, type: "route", path: "/news" },
+  { label: "Tìm sân chơi Pickleball", icon: PlaceOutlinedIcon, type: "route", path: "/courts" },
+  { label: "Liên hệ | Trợ giúp", icon: HeadsetMicOutlinedIcon, type: "route", path: "/support" },
 ];
 
 const categoryIcons = [
