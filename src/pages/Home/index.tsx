@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
+import type { Product } from "../../types";
 import { useNavigate } from "react-router-dom";
 import {
   Box, Container, Typography, Paper, Button, Divider, IconButton,
-  Fab, Tooltip, CircularProgress, alpha, useTheme,
+  Fab, Tooltip, CircularProgress,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import {
@@ -33,7 +34,7 @@ const ProductCarousel = ({
   showViewAll = true,
   onViewAll,
 }: {
-  products: any[];
+  products: Product[];
   title: string;
   titleBgColor?: string;
   showViewAll?: boolean;
@@ -128,7 +129,7 @@ const CategoryShowcase = ({
   onSelect,
 }: {
   categories: { _id: string; name: string; slug?: string; image?: string; parentId?: string | null }[];
-  products: any[];
+  products: Product[];
   getImageUrl: (imagePath?: string) => string;
   onSelect: (categoryId: string) => void;
 }) => {
@@ -341,14 +342,14 @@ const CategoryShowcase = ({
 };
 
 const Home = () => {
-  const theme = useTheme();
+
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { products, loading } = useSelector((state: RootState) => state.products);
   const { categories } = useSelector((state: RootState) => state.categories);
 
   useEffect(() => {
-    dispatch(fetchAllProducts({ limit: 1000 }));
+    dispatch(fetchAllProducts({ limit: 40 }));
     dispatch(fetchCategories());
   }, [dispatch]);
 

@@ -37,9 +37,9 @@ const TRENDING_KEYWORDS = ["Vợt Pickleball", "Giày Pickleball", "Bóng Pickle
 const navItems = [
   { label: "Trang Chủ", path: "/" },
   { label: "Sản Phẩm", path: "/products" },
-  { label: "Tư Vấn Chọn Vợt", path: "/products" },
-  { label: "Khuyến Mãi", path: "/products" },
-  { label: "Đánh Giá", path: "/products" },
+  { label: "Giới thiệu", path: "/about" },
+  { label: "Đơn hàng", path: "/orders" },
+  { label: "Giỏ hàng", path: "/cart" },
 ];
 
 const Header = () => {

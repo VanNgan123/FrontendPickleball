@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import {
   Box,
@@ -8,6 +8,7 @@ import {
   Paper,
   Divider,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import {
@@ -22,6 +23,7 @@ import {
   Package,
 } from "lucide-react";
 import MainLayout from "../../layout/MainLayout/MainLayout";
+import orderService from "../../services/orderService";
 import type { Order } from "../../services/orderService";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
@@ -69,15 +71,39 @@ const OrderSuccess = () => {
 
   // Lay order tu location state (duoc truyen tu Checkout)
   const order = (location.state as { order: Order } | null)?.order;
+  const [orderDetail, setOrderDetail] = useState<Order | null>(null);
+  const [fetchingOrder, setFetchingOrder] = useState(false);
 
-  // Neu khong co order trong state -> redirect ve trang chu
+  // Neu khong co order trong state -> goi API lay chi tiet don hang
   useEffect(() => {
-    if (!order && !id) {
+    if (!order && id) {
+      setFetchingOrder(true);
+      orderService
+        .getOrderById(id)
+        .then((res) => setOrderDetail(res.data))
+        .catch(() => navigate("/orders"))
+        .finally(() => setFetchingOrder(false));
+    } else if (!order && !id) {
       navigate("/");
     }
   }, [order, id, navigate]);
 
-  if (!order) {
+  const displayOrder = order || orderDetail;
+
+  if (fetchingOrder) {
+    return (
+      <MainLayout>
+        <Container maxWidth="md" sx={{ py: 10, textAlign: "center" }}>
+          <CircularProgress size={40} />
+          <Typography variant="body1" sx={{ mt: 2, color: "#888" }}>
+            Đang tải thông tin đơn hàng...
+          </Typography>
+        </Container>
+      </MainLayout>
+    );
+  }
+
+  if (!displayOrder) {
     return (
       <MainLayout>
         <Container maxWidth="md" sx={{ py: 10, textAlign: "center" }}>
@@ -99,8 +125,8 @@ const OrderSuccess = () => {
     );
   }
 
-  const status = STATUS_MAP[order.status] || STATUS_MAP.Pending;
-  const addr = order.shippingAddress;
+  const status = STATUS_MAP[displayOrder.status] || STATUS_MAP.Pending;
+  const addr = displayOrder.shippingAddress;
 
   return (
     <MainLayout>
@@ -193,7 +219,7 @@ const OrderSuccess = () => {
                 fontSize: "0.9rem",
               }}
             >
-              #{order._id.slice(-8).toUpperCase()}
+              #{displayOrder._id.slice(-8).toUpperCase()}
             </Typography>
           </Box>
         </Box>
@@ -229,7 +255,7 @@ const OrderSuccess = () => {
                     variant="subtitle2"
                     sx={{ fontWeight: 800, color: "#1a1a1a" }}
                   >
-                    SẢN PHẨM ({order.items.length})
+                    SẢN PHẨM ({displayOrder.items.length})
                   </Typography>
                 </Box>
                 <Chip
@@ -246,7 +272,7 @@ const OrderSuccess = () => {
               </Box>
 
               <Box sx={{ px: 3, py: 1 }}>
-                {order.items.map((item, idx) => {
+                {displayOrder.items.map((item, idx) => {
                   const p = item.productId;
                   return (
                     <Box
@@ -256,7 +282,7 @@ const OrderSuccess = () => {
                         gap: 2,
                         py: 2,
                         borderBottom:
-                          idx < order.items.length - 1 ? "1px solid #f5f5f5" : "none",
+                          idx < displayOrder.items.length - 1 ? "1px solid #f5f5f5" : "none",
                         alignItems: "center",
                       }}
                     >
@@ -344,7 +370,7 @@ const OrderSuccess = () => {
                   Tổng cộng
                 </Typography>
                 <Typography variant="h6" sx={{ fontWeight: 900, color: "#E60023" }}>
-                  {formatPrice(order.total)}
+                  {formatPrice(displayOrder.total)}
                 </Typography>
               </Box>
             </Paper>
@@ -369,7 +395,7 @@ const OrderSuccess = () => {
                       Ngày đặt hàng
                     </Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600, color: "#1a1a1a" }}>
-                      {formatDate(order.createdAt)}
+                      {formatDate(displayOrder.createdAt)}
                     </Typography>
                   </Box>
                 </Box>
@@ -411,7 +437,7 @@ const OrderSuccess = () => {
                       Phương thức thanh toán
                     </Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600, color: "#1a1a1a" }}>
-                      {PAYMENT_LABEL[order.paymentMethod] || order.paymentMethod}
+                      {PAYMENT_LABEL[displayOrder.paymentMethod] || displayOrder.paymentMethod}
                     </Typography>
                   </Box>
                 </Box>
@@ -486,9 +512,9 @@ const OrderSuccess = () => {
                 </Typography>
 
                 {["Pending", "Confirmed", "Shipping", "Completed"].map((step, idx) => {
-                  const isActive = step === order.status;
+                  const isActive = step === displayOrder.status;
                   const isPassed =
-                    ["Pending", "Confirmed", "Shipping", "Completed"].indexOf(order.status) >=
+                    ["Pending", "Confirmed", "Shipping", "Completed"].indexOf(displayOrder.status) >=
                     idx;
 
                   return (
