@@ -22,8 +22,9 @@ export const fetchCategories = createAsyncThunk<
   try {
     const data = await categoryService.getAllCategories();
     return data || [];
-  } catch (error: any) {
-    return rejectWithValue(error?.message || "Khong the tai danh muc");
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Khong the tai danh muc";
+    return rejectWithValue(message);
   }
 });
 

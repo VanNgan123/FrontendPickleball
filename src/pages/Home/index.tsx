@@ -149,8 +149,9 @@ const CategoryShowcase = ({
     const relatedSlugs = new Set(relatedCategories.map((item) => normalize(item.slug)));
 
     return products.filter((product) =>
-      product.categories?.some((cat: any) => {
-        if (cat && typeof cat === "object") {
+      product.categories?.some((cat: string | { _id: string; name: string; slug?: string }) => {
+        if (!cat) return false;
+        if (typeof cat === "object") {
           return (
             relatedIds.has(cat._id) ||
             relatedNames.has(normalize(cat.name)) ||
@@ -160,7 +161,7 @@ const CategoryShowcase = ({
 
         const rawCategory = normalize(cat);
         return (
-          relatedIds.has(String(cat)) ||
+          relatedIds.has(cat) ||
           relatedNames.has(rawCategory) ||
           relatedSlugs.has(rawCategory)
         );
@@ -368,7 +369,7 @@ const Home = () => {
   // Products per category
   const getProductsByCategory = (categoryId: string) =>
     products.filter((p) =>
-      p.categories?.some((cat: any) =>
+      p.categories?.some((cat: string | { _id: string }) =>
         typeof cat === "object" ? cat._id === categoryId : cat === categoryId
       )
     ).slice(0, 10);

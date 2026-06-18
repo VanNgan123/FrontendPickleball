@@ -103,8 +103,9 @@ const ProductDetail = () => {
     try {
       await dispatch(addToCart({ productId: product._id, qty: quantity })).unwrap();
       alert("Đã thêm vào giỏ hàng!");
-    } catch (error: any) {
-      alert(error || "Thêm vào giỏ thất bại");
+    } catch (error: unknown) {
+      const msg = typeof error === "string" ? error : error instanceof Error ? error.message : "Thêm vào giỏ thất bại";
+      alert(msg);
     }
   };
 
@@ -118,8 +119,9 @@ const ProductDetail = () => {
     try {
       await dispatch(addToCart({ productId: product._id, qty: quantity })).unwrap();
       navigate("/cart");
-    } catch (error: any) {
-      alert(error || "Thêm vào giỏ thất bại");
+    } catch (error: unknown) {
+      const msg = typeof error === "string" ? error : error instanceof Error ? error.message : "Thêm vào giỏ thất bại";
+      alert(msg);
     }
   };
 
@@ -145,8 +147,9 @@ const ProductDetail = () => {
       setReviewText("");
       setReviewRating(null);
       setShowReviewDialog(false);
-    } catch (error: any) {
-      setReviewError(error?.response?.data?.message || "Gui danh gia that bai.");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      setReviewError(err.response?.data?.message || err.message || "Gui danh gia that bai.");
     } finally {
       setReviewSubmitting(false);
     }
@@ -202,7 +205,7 @@ const ProductDetail = () => {
             <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>TRANG CHỦ</span>
             {" / "}
             <span style={{ cursor: "pointer" }}>
-              {typeof product.categories?.[0] === "object" ? (product.categories[0] as any)?.name : product.categories?.[0] || "SẢN PHẨM"}
+              {typeof product.categories?.[0] === "object" ? (product.categories[0] as { name?: string })?.name : product.categories?.[0] || "SẢN PHẨM"}
             </span>
           </Typography>
 

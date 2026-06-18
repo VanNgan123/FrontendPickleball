@@ -1,6 +1,32 @@
 import { useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 
+const TimeBlock = ({ value, label }: { value: number; label: string }) => (
+  <Box sx={{ textAlign: "center", mx: 0.5 }}>
+    <Box
+      sx={{
+        bgcolor: "#E60023",
+        color: "white",
+        borderRadius: 1,
+        px: 1.5,
+        py: 0.8,
+        minWidth: 45,
+        fontWeight: 900,
+        fontSize: "1.2rem",
+        boxShadow: "0 2px 8px rgba(230,0,35,0.3)",
+      }}
+    >
+      {String(value).padStart(2, "0")}
+    </Box>
+    <Typography
+      variant="caption"
+      sx={{ fontWeight: 700, color: "text.secondary", mt: 0.5, display: "block", fontSize: "0.65rem" }}
+    >
+      {label}
+    </Typography>
+  </Box>
+);
+
 const Countdown = () => {
   const [timeLeft, setTimeLeft] = useState({
     hours: 0,
@@ -28,32 +54,6 @@ const Countdown = () => {
     const timer = setInterval(calculateTimeLeft, 1000);
     return () => clearInterval(timer);
   }, []);
-
-  const TimeBlock = ({ value, label }: { value: number; label: string }) => (
-    <Box sx={{ textAlign: "center", mx: 0.5 }}>
-      <Box
-        sx={{
-          bgcolor: "#E60023",
-          color: "white",
-          borderRadius: 1,
-          px: 1.5,
-          py: 0.8,
-          minWidth: 45,
-          fontWeight: 900,
-          fontSize: "1.2rem",
-          boxShadow: "0 2px 8px rgba(230,0,35,0.3)",
-        }}
-      >
-        {String(value).padStart(2, "0")}
-      </Box>
-      <Typography
-        variant="caption"
-        sx={{ fontWeight: 700, color: "text.secondary", mt: 0.5, display: "block", fontSize: "0.65rem" }}
-      >
-        {label}
-      </Typography>
-    </Box>
-  );
 
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>

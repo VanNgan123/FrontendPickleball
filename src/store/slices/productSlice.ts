@@ -48,8 +48,9 @@ export const fetchAllProducts = createAsyncThunk<
       products: data.data || [],
       pagination: data.pagination || null,
     };
-  } catch (error: any) {
-    return rejectWithValue(error?.message || "Không thể tải sản phẩm");
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Không thể tải sản phẩm";
+    return rejectWithValue(message);
   }
 });
 
@@ -62,8 +63,9 @@ export const fetchProductById = createAsyncThunk<
   try {
     const data = await productService.getProductById(id);
     return data.data;
-  } catch (error: any) {
-    return rejectWithValue(error?.message || "Không tìm thấy sản phẩm");
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Không tìm thấy sản phẩm";
+    return rejectWithValue(message);
   }
 });
 
@@ -79,8 +81,9 @@ export const searchProducts = createAsyncThunk<
       products: data.data || [],
       pagination: data.pagination || null,
     };
-  } catch (error: any) {
-    return rejectWithValue(error?.message || "Tìm kiếm thất bại");
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Tìm kiếm thất bại";
+    return rejectWithValue(message);
   }
 });
 

@@ -1,7 +1,21 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { AxiosError } from "axios";
 import cartService from "../../services/cartService";
 import type { CartItem } from "../../types";
 import type { RootState } from "../store";
+
+// =============================================
+// Helpers
+// =============================================
+const extractErrorMessage = (error: unknown, fallback: string): string => {
+  if (error instanceof AxiosError) {
+    return error.response?.data?.message || error.message || fallback;
+  }
+  if (error instanceof Error) {
+    return error.message || fallback;
+  }
+  return fallback;
+};
 
 // =============================================
 // State interface
@@ -41,8 +55,8 @@ export const fetchCart = createAsyncThunk<
     ensureAuthenticated(getState);
     const data = await cartService.getCart();
     return data.data?.items || [];
-  } catch (error: any) {
-    return rejectWithValue(error?.message || "Không thể tải giỏ hàng");
+  } catch (error: unknown) {
+    return rejectWithValue(extractErrorMessage(error, "Không thể tải giỏ hàng"));
   }
 });
 
@@ -56,8 +70,8 @@ export const addToCart = createAsyncThunk<
     ensureAuthenticated(getState);
     const data = await cartService.addToCart(productId, qty);
     return data.data?.items || [];
-  } catch (error: any) {
-    return rejectWithValue(error?.message || "Thêm vào giỏ thất bại");
+  } catch (error: unknown) {
+    return rejectWithValue(extractErrorMessage(error, "Thêm vào giỏ thất bại"));
   }
 });
 
@@ -73,8 +87,8 @@ export const updateCartItem = createAsyncThunk<
       ensureAuthenticated(getState);
       const data = await cartService.updateCartItem(productId, qty);
       return data.data?.items || [];
-    } catch (error: any) {
-      return rejectWithValue(error?.message || "Cập nhật thất bại");
+    } catch (error: unknown) {
+      return rejectWithValue(extractErrorMessage(error, "Cập nhật thất bại"));
     }
   }
 );
@@ -89,8 +103,8 @@ export const removeFromCart = createAsyncThunk<
     ensureAuthenticated(getState);
     const data = await cartService.removeFromCart(productId);
     return data.data?.items || [];
-  } catch (error: any) {
-    return rejectWithValue(error?.message || "Xóa thất bại");
+  } catch (error: unknown) {
+    return rejectWithValue(extractErrorMessage(error, "Xóa thất bại"));
   }
 });
 
@@ -101,8 +115,8 @@ export const clearCart = createAsyncThunk<void, void, { rejectValue: string }>(
     try {
       ensureAuthenticated(getState);
       await cartService.clearCart();
-    } catch (error: any) {
-      return rejectWithValue(error?.message || "Xóa giỏ thất bại");
+    } catch (error: unknown) {
+      return rejectWithValue(extractErrorMessage(error, "Xóa giỏ thất bại"));
     }
   }
 );

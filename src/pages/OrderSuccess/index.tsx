@@ -18,7 +18,6 @@ import {
   Phone,
   User,
   CreditCard,
-  ChevronRight,
   Home,
   Package,
 } from "lucide-react";
@@ -72,12 +71,13 @@ const OrderSuccess = () => {
   // Lay order tu location state (duoc truyen tu Checkout)
   const order = (location.state as { order: Order } | null)?.order;
   const [orderDetail, setOrderDetail] = useState<Order | null>(null);
-  const [fetchingOrder, setFetchingOrder] = useState(false);
+  
+  // Set initial fetching state dynamically to avoid setState in effect
+  const [fetchingOrder, setFetchingOrder] = useState<boolean>(() => !order && !!id);
 
   // Neu khong co order trong state -> goi API lay chi tiet don hang
   useEffect(() => {
     if (!order && id) {
-      setFetchingOrder(true);
       orderService
         .getOrderById(id)
         .then((res) => setOrderDetail(res.data))
