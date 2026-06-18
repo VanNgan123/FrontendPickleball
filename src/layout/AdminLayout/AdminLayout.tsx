@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "../../store/store";
-import { logout } from "../../store/slices/authSlice";
+import { logoutUser } from "../../store/slices/authSlice";
 import toast from "react-hot-toast";
 
 const SIDEBAR_WIDTH = 260;
@@ -90,7 +90,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
   const sidebarWidth = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
 
   const handleLogout = () => {
-    dispatch(logout());
+    dispatch(logoutUser());
     navigate("/login");
     toast.success("Đã đăng xuất");
   };

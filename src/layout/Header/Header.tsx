@@ -9,11 +9,12 @@ import { Search, FavoriteBorder, ShoppingBagOutlined, PersonOutline } from "@mui
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "../../store/store";
-import { logout, fetchUserProfile } from "../../store/slices/authSlice";
+import { logoutUser, fetchUserProfile } from "../../store/slices/authSlice";
 import { fetchCart } from "../../store/slices/cartSlice";
 import { X, TrendingUp } from "lucide-react";
 import axiosPickleball from "../../api/axiosPickleball";
 import logoImage from "../../assets/logo/image.png";
+import { Product } from "../../types";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -58,7 +59,7 @@ const Header = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [suggestLoading, setSuggestLoading] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -86,9 +87,9 @@ const Header = () => {
     const fetchSuggestions = async () => {
       try {
         setSuggestLoading(true);
-        const res = await axiosPickleball.get(
+        const res = (await axiosPickleball.get(
           `/api/products/search?search=${encodeURIComponent(debouncedQuery)}&limit=5`
-        ) as any;
+        )) as { data?: Product[]; products?: Product[] };
         setSuggestions(res?.data || res?.products || []);
       } catch {
         setSuggestions([]);
@@ -108,7 +109,7 @@ const Header = () => {
     navigate(`/search?q=${encodeURIComponent(query)}`);
   }, [searchQuery, navigate]);
 
-  const handleSuggestionClick = (product: any) => {
+  const handleSuggestionClick = (product: Product) => {
     setSearchFocused(false);
     setSuggestions([]);
     setSearchQuery("");
@@ -116,7 +117,7 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    dispatch(logout());
+    dispatch(logoutUser());
     setAnchorEl(null);
     navigate("/");
   };

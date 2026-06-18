@@ -27,7 +27,7 @@ export interface LoginResponse {
   status: string;
   message: string;
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
   user: AuthUser;
 }
 
@@ -51,7 +51,7 @@ export interface RefreshTokenResponse {
 
 export interface ProfileResponse {
   status: string;
-  data: AuthUser;
+  data: AuthUser & { _id?: string };
 }
 
 // =============================================
@@ -70,12 +70,16 @@ const authService = {
     return response as unknown as LoginResponse;
   },
 
-  // Refresh access token
-  refreshToken: async (refreshToken: string): Promise<RefreshTokenResponse> => {
-    const response = await axiosPickleball.post("/api/users/refresh-token", {
-      refreshToken,
-    });
+  // Refresh access token (cookie tự gửi refresh token)
+  refreshToken: async (): Promise<RefreshTokenResponse> => {
+    const response = await axiosPickleball.post("/api/users/refresh-token", {});
     return response as unknown as RefreshTokenResponse;
+  },
+
+  // Đăng xuất
+  logout: async (): Promise<{ status: string; message: string }> => {
+    const response = await axiosPickleball.post("/api/users/logout");
+    return response as unknown as { status: string; message: string };
   },
 
   // Lấy profile user hiện tại
