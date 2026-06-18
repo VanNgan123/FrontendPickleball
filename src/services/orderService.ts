@@ -18,11 +18,13 @@ export interface CreateOrderPayload {
   shippingAddress: ShippingAddress;
   paymentMethod: "COD" | "VNPay" | "Momo" | "BankTransfer";
   total: number;
+  couponCode?: string | null;
 }
 
 export interface CreateOrderFromCartPayload {
   shippingAddress: ShippingAddress;
   paymentMethod: "COD" | "VNPay" | "Momo" | "BankTransfer";
+  couponCode?: string | null;
 }
 
 export interface Order {
@@ -40,6 +42,8 @@ export interface Order {
   }[];
   shippingAddress: ShippingAddress;
   paymentMethod: string;
+  paymentStatus?: "Unpaid" | "Paid" | "Failed" | "Refunded";
+  paidAt?: string | null;
   total: number;
   status: "Pending" | "Confirmed" | "Shipping" | "Completed" | "Cancelled";
   createdAt: string;

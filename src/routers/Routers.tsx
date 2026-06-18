@@ -6,6 +6,7 @@ import ProductDetail from "../pages/ProductDetail";
 import Products from "../pages/Products";
 import Cart from "../pages/Cart";
 import Checkout from "../pages/Checkout";
+import PaymentResult from "../pages/PaymentResult";
 import OrderSuccess from "../pages/OrderSuccess";
 import Profile from "../pages/Profile";
 import Orders from "../pages/Orders";
@@ -46,6 +47,7 @@ const AppRouters = () => {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/payment-result" element={<PaymentResult />} />
         <Route path="/order-success/:id" element={<OrderSuccess />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/orders" element={<Orders />} />

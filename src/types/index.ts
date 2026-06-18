@@ -71,6 +71,7 @@ export interface CartItem {
     image: string[];
     salePrice?: number;
     stock: number;
+    categories?: Category[] | string[];
   };
   qty: number;
   _id?: string;

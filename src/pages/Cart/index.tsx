@@ -117,7 +117,23 @@ const Cart = () => {
     try {
       setCouponLoading(true);
       setCouponError(null);
-      const r = await couponService.calculateDiscount(couponCode.trim(), subtotal);
+      
+      const selectedProductIds = selectedItems.map(item => item.productId?._id).filter(Boolean);
+      const selectedCategoryIds = Array.from(
+        new Set(
+          selectedItems
+            .flatMap(item => (item.productId?.categories as any) || [])
+            .map((cat: any) => typeof cat === "object" ? cat._id : cat)
+            .filter(Boolean)
+        )
+      );
+
+      const r = await couponService.calculateDiscount(
+        couponCode.trim(),
+        subtotal,
+        selectedProductIds,
+        selectedCategoryIds
+      );
       setCouponResult(r);
     } catch (e: any) {
       setCouponError(e?.response?.data?.message || e?.message || "Mã không hợp lệ");
