@@ -37,6 +37,7 @@ import type { AppDispatch, RootState } from "../../store/store";
 import { fetchCart, resetCart } from "../../store/slices/cartSlice";
 import orderService from "../../services/orderService";
 import type { ShippingAddress } from "../../services/orderService";
+import paymentService from "../../services/paymentService";
 import MainLayout from "../../layout/MainLayout/MainLayout";
 import toast from "react-hot-toast";
 
@@ -176,7 +177,7 @@ const Checkout = () => {
     return sum + price * item.qty;
   }, 0);
 
-  const shippingFee = subtotal >= 1000000 ? 0 : 30000;
+  const shippingFee = subtotal >= 2000000 ? 0 : 30000;
   const finalTotal = subtotal - discountAmount + shippingFee;
   const totalItems = checkoutItems.reduce((sum, item) => sum + item.qty, 0);
 
@@ -201,13 +202,7 @@ const Checkout = () => {
       toast.error("Chưa chọn sản phẩm nào để thanh toán");
       return;
     }
-
-    // Canh bao neu chon thanh toan online (chua tich hop)
-    if (paymentMethod !== "COD") {
-      toast.error("Thanh toán online đang được phát triển, vui lòng chọn COD");
-      return;
-    }
-
+    
     try {
       setSubmitting(true);
 
@@ -223,16 +218,37 @@ const Checkout = () => {
         shippingAddress: form,
         paymentMethod,
         total: finalTotal,
+        couponCode,
       });
 
-      // Xoa gio hang khoi Redux va reload
-      dispatch(resetCart());
-      dispatch(fetchCart());
+      // Xu ly theo phuong thuc thanh toan
+      if (paymentMethod === "COD") {
+        dispatch(resetCart());
+        dispatch(fetchCart());
 
-      toast.success("Đặt hàng thành công! 🎉");
-      navigate(`/order-success/${result.data._id}`, {
-        state: { order: result.data },
-      });
+        toast.success("Đặt hàng thành công! 🎉");
+        navigate(`/order-success/${result.data._id}`, {
+          state: { order: result.data },
+        });
+        return;
+      }
+
+      if (paymentMethod === "VNPay") {
+        const paymentResult = await paymentService.createVNPayUrl(result.data._id);
+
+        if (!paymentResult.paymentUrl) {
+          toast.error("Không tạo được link thanh toán VNPay");
+          return;
+        }
+
+        dispatch(resetCart());
+        dispatch(fetchCart());
+
+        window.location.href = paymentResult.paymentUrl;
+        return;
+      }
+
+      toast.error("Phương thức thanh toán này chưa được hỗ trợ");
     } catch (error: any) {
       const msg =
         error?.response?.data?.message ||
@@ -629,9 +645,9 @@ const Checkout = () => {
                   </RadioGroup>
                 </FormControl>
 
-                {paymentMethod !== "COD" && (
-                  <Alert severity="warning" sx={{ mt: 2 }}>
-                    Thanh toán online đang được phát triển. Vui lòng chọn COD.
+                {paymentMethod === "VNPay" && (
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    Bạn sẽ được chuyển sang cổng thanh toán VNPay sau khi đặt hàng.
                   </Alert>
                 )}
               </Box>

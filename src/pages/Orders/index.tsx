@@ -14,6 +14,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
 import orderService from "../../services/orderService";
 import type { Order } from "../../services/orderService";
+import paymentService from "../../services/paymentService";
 import MainLayout from "../../layout/MainLayout/MainLayout";
 import toast from "react-hot-toast";
 import { OrderCardSkeleton } from "../../components/Skeletons";
@@ -107,6 +108,60 @@ const PAYMENT_LABEL: Record<string, string> = {
   BankTransfer: "Chuyển khoản ngân hàng",
 };
 
+const getPaymentBadge = (order: Order) => {
+  const paymentStatus = order.paymentStatus || "Unpaid";
+  const isPaid = paymentStatus === "Paid" && Boolean(order.paidAt);
+
+  if (order.paymentMethod === "COD") {
+    return {
+      label: "Thanh toán khi nhận hàng",
+      bg: "rgba(15,23,42,0.06)",
+      color: T.textSub,
+    };
+  }
+
+  if (isPaid) {
+    return {
+      label: "Đã thanh toán online",
+      bg: "rgba(16,185,129,0.1)",
+      color: "#059669",
+    };
+  }
+
+  if (paymentStatus === "Failed") {
+    return {
+      label: "Thanh toán online thất bại",
+      bg: "rgba(239,68,68,0.1)",
+      color: "#EF4444",
+    };
+  }
+
+  if (paymentStatus === "Refunded") {
+    return {
+      label: "Đã hoàn tiền",
+      bg: "rgba(239,68,68,0.1)",
+      color: "#EF4444",
+    };
+  }
+
+  return {
+    label: "Chưa thanh toán VNPay",
+    bg: "rgba(217,119,6,0.1)",
+    color: "#D97706",
+  };
+};
+
+const getPaymentStatusText = (order: Order) => {
+  const paymentStatus = order.paymentStatus || "Unpaid";
+  const isPaid = paymentStatus === "Paid" && Boolean(order.paidAt);
+
+  if (order.paymentMethod === "COD") return "Chờ thanh toán khi nhận hàng";
+  if (isPaid) return "Đã thanh toán";
+  if (paymentStatus === "Failed") return "Thanh toán thất bại";
+  if (paymentStatus === "Refunded") return "Đã hoàn tiền";
+  return "Chưa thanh toán";
+};
+
 const TABS = [
   { value: "all", label: "Tất cả" },
   { value: "Pending", label: "Chờ xác nhận" },
@@ -125,6 +180,65 @@ const TIMELINE_STEPS = [
 ];
 
 // =============================================
+// Order Pay Button Component
+// =============================================
+const OrderPayButton = ({
+  order,
+  size = "small",
+  variant = "contained",
+}: {
+  order: Order;
+  size?: "small" | "medium";
+  variant?: "contained" | "outlined";
+}) => {
+  const [isPaying, setIsPaying] = useState(false);
+
+  const handlePayNow = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      setIsPaying(true);
+      const res = await paymentService.createVNPayUrl(order._id);
+      if (res.status === "OK" && res.paymentUrl) {
+        window.location.href = res.paymentUrl;
+      } else {
+        toast.error(res.message || "Không thể tạo liên kết thanh toán");
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Lỗi kết nối đến server");
+    } finally {
+      setIsPaying(false);
+    }
+  };
+
+  return (
+    <Button
+      variant={variant}
+      size={size}
+      onClick={handlePayNow}
+      disabled={isPaying}
+      sx={{
+        bgcolor: variant === "contained" ? T.teal : "transparent",
+        color: variant === "contained" ? "white" : T.teal,
+        borderColor: T.teal,
+        fontWeight: 800,
+        fontSize: "0.82rem",
+        borderRadius: 99,
+        px: 2.5,
+        py: 0.8,
+        textTransform: "none",
+        "&:hover": {
+          bgcolor: variant === "contained" ? T.navy : "rgba(15,118,110,0.04)",
+          borderColor: T.teal,
+        },
+        transition: "all 200ms ease",
+      }}
+    >
+      {isPaying ? "Đang xử lý..." : "Thanh toán ngay"}
+    </Button>
+  );
+};
+
+// =============================================
 // Order Card Component
 // =============================================
 const OrderCard = ({
@@ -137,6 +251,7 @@ const OrderCard = ({
   isSelected: boolean;
 }) => {
   const status = STATUS_CONFIG[order.status] || STATUS_CONFIG.Pending;
+  const paymentBadge = getPaymentBadge(order);
 
   return (
     <Paper
@@ -301,14 +416,38 @@ const OrderCard = ({
           </Box>
 
           <Chip
-            label={order.paymentMethod === "COD" ? "Thanh toán COD" : "Đã thanh toán online"}
+            label={
+              order.paymentMethod === "COD"
+                ? "Thanh toán COD"
+                : order.paymentStatus === "Paid" && Boolean(order.paidAt)
+                ? "Đã thanh toán online"
+                : order.paymentStatus === "Failed"
+                ? "Thanh toán online thất bại"
+                : order.paymentStatus === "Refunded"
+                ? "Đã hoàn tiền"
+                : "Chờ thanh toán online"
+            }
             size="small"
             sx={{
               height: 22,
               fontSize: "0.75rem",
               fontWeight: 800,
-              bgcolor: order.paymentMethod === "COD" ? "rgba(15,23,42,0.06)" : "rgba(16,185,129,0.1)",
-              color: order.paymentMethod === "COD" ? T.textSub : "#059669",
+              bgcolor:
+                order.paymentMethod === "COD"
+                  ? "rgba(15,23,42,0.06)"
+                  : order.paymentStatus === "Paid" && Boolean(order.paidAt)
+                  ? "rgba(16,185,129,0.1)"
+                  : order.paymentStatus === "Failed" || order.paymentStatus === "Refunded"
+                  ? "rgba(239, 68, 68, 0.1)"
+                  : "rgba(217, 119, 6, 0.1)",
+              color:
+                order.paymentMethod === "COD"
+                  ? T.textSub
+                  : order.paymentStatus === "Paid" && Boolean(order.paidAt)
+                  ? "#059669"
+                  : order.paymentStatus === "Failed" || order.paymentStatus === "Refunded"
+                  ? "#EF4444"
+                  : "#D97706",
             }}
           />
         </Box>
@@ -322,6 +461,13 @@ const OrderCard = ({
               {formatPrice(order.total)}
             </Typography>
           </Box>
+
+          {order.paymentMethod !== "COD" &&
+            !(order.paymentStatus === "Paid" && Boolean(order.paidAt)) &&
+            order.paymentStatus !== "Refunded" &&
+            order.status !== "Cancelled" && (
+              <OrderPayButton order={order} />
+            )}
 
           <Button
             variant="outlined"
@@ -439,6 +585,33 @@ const OrderDetail = ({ order, onClose }: { order: Order; onClose: () => void }) 
           </Button>
         </Box>
       </Box>
+
+      {order.paymentMethod !== "COD" &&
+        !(order.paymentStatus === "Paid" && Boolean(order.paidAt)) &&
+        order.paymentStatus !== "Refunded" &&
+        order.status !== "Cancelled" && (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              bgcolor: "rgba(217,119,6,0.06)",
+              borderBottom: `1px solid ${T.border}`,
+              px: { xs: 2.5, md: 4 },
+              py: 2,
+              flexWrap: "wrap",
+              gap: 2,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <CreditCard size={18} color="#D97706" />
+              <Typography variant="body2" sx={{ fontWeight: 805, color: "#D97706", fontSize: "0.85rem" }}>
+                Đơn hàng chưa được thanh toán trực tuyến. Vui lòng thanh toán để hoàn tất đơn hàng.
+              </Typography>
+            </Box>
+            <OrderPayButton order={order} size="medium" />
+          </Box>
+        )}
 
       <Box sx={{ p: { xs: 2.5, md: 4 } }}>
         {/* ══════════ DELIVERY STATUS TRACKING TIMELINE ══════════ */}
@@ -723,6 +896,35 @@ const OrderDetail = ({ order, onClose }: { order: Order; onClose: () => void }) 
                 </Typography>
                 <Typography variant="caption" sx={{ fontWeight: 800, color: T.navy }}>
                   {PAYMENT_LABEL[order.paymentMethod] || order.paymentMethod}
+                </Typography>
+              </Box>
+              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
+                <Typography variant="caption" sx={{ color: T.textSub, fontWeight: 700 }}>
+                  Trạng thái thanh toán
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontWeight: 800,
+                    color:
+                      order.paymentMethod === "COD"
+                        ? T.textSub
+                        : order.paymentStatus === "Paid" && Boolean(order.paidAt)
+                        ? "#059669"
+                        : order.paymentStatus === "Failed" || order.paymentStatus === "Refunded"
+                        ? "#EF4444"
+                        : "#D97706",
+                  }}
+                >
+                  {order.paymentMethod === "COD"
+                    ? "Chờ thanh toán khi nhận hàng"
+                    : order.paymentStatus === "Paid" && Boolean(order.paidAt)
+                    ? "Đã thanh toán"
+                    : order.paymentStatus === "Failed"
+                    ? "Thanh toán thất bại"
+                    : order.paymentStatus === "Refunded"
+                    ? "Đã hoàn tiền"
+                    : "Chờ thanh toán"}
                 </Typography>
               </Box>
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>

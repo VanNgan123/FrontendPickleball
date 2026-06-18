@@ -35,13 +35,17 @@ const couponService = {
 
   calculateDiscount: async (
     code: string,
-    orderAmount: number
+    orderAmount: number,
+    productIds?: string[],
+    categoryIds?: string[]
   ): Promise<CalculateDiscountResult> => {
     const response = await axiosPickleball.post(
       "/api/coupons/calculate-discount",
       {
         code,
         orderAmount,
+        productIds,
+        categoryIds,
       }
     );
     return (response as any).data as CalculateDiscountResult;
