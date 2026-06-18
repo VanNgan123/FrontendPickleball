@@ -13,11 +13,11 @@ export interface CreateOrderPayload {
   items: {
     productId: string;
     qty: number;
-    price: number;
+    price?: number;
   }[];
   shippingAddress: ShippingAddress;
   paymentMethod: "COD" | "VNPay" | "Momo" | "BankTransfer";
-  total: number;
+  total?: number;
   couponCode?: string | null;
 }
 

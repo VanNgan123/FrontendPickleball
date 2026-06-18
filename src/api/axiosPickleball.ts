@@ -1,72 +1,94 @@
+import axios, {
+  type AxiosError,
+  type InternalAxiosRequestConfig,
+} from "axios";
 
-import axios from "axios";
+interface RetryableRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
+const configuredApiUrl = import.meta.env.VITE_API_URL;
+
+// Development không khai báo env: dùng backend local.
+// Production Docker truyền chuỗi rỗng: dùng same-origin qua Nginx.
+const baseURL =
+  configuredApiUrl === undefined
+    ? "http://localhost:3001"
+    : configuredApiUrl;
 
 const axiosPickleball = axios.create({
-   baseURL: import.meta.env.VITE_API_URL || "http://localhost:3001",
-   timeout: 10000,
+  baseURL,
+  timeout: 10000,
+  withCredentials: true,
 });
 
-
-// Thêm một bộ đón chặn request
 axiosPickleball.interceptors.request.use(
-   function (config) {
-      // Gắn access token vào header nếu có
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-         config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-   },
-   function (error) {
-      // Làm gì đó với lỗi request
-      return Promise.reject(error);
-   }
+  (config) => {
+    const token = localStorage.getItem("accessToken");
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
 
-// Thêm một bộ đón chặn response
 axiosPickleball.interceptors.response.use(
-   function (response) {
-      // Bất kì mã trạng thái nào nằm trong tầm 2xx đều khiến hàm này được trigger
-      // Làm gì đó với dữ liệu response
-      return response.data;
-   },
-   async function (error) {
-      const originalRequest = error.config;
+  (response) => response.data,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as
+      | RetryableRequestConfig
+      | undefined;
 
-      // Nếu lỗi 401 và chưa retry -> thử refresh token
-      if (error.response?.status === 401 && !originalRequest._retry) {
-         originalRequest._retry = true;
-
-         try {
-            const refreshToken = localStorage.getItem("refreshToken");
-            if (!refreshToken) {
-               return Promise.reject(error);
-            }
-
-            // Gọi API refresh token (dùng axios trực tiếp, không qua interceptor)
-            const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3001";
-            const res = await axios.post(`${baseURL}/api/users/refresh-token`, {
-               refreshToken,
-            });
-
-            const newAccessToken = res.data.accessToken;
-            localStorage.setItem("accessToken", newAccessToken);
-
-            // Retry request ban đầu với token mới
-            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-            return axiosPickleball(originalRequest);
-         } catch (refreshError) {
-            // Refresh thất bại -> xóa token & chuyển về login
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("refreshToken");
-            localStorage.removeItem("user");
-            window.location.href = "/login";
-            return Promise.reject(refreshError);
-         }
-      }
-
+    if (!originalRequest) {
       return Promise.reject(error);
-   }
+    }
+
+    const isUnauthorized = error.response?.status === 401;
+    const isRefreshRequest = originalRequest.url?.includes(
+      "/api/users/refresh-token"
+    );
+
+    if (
+      isUnauthorized &&
+      !originalRequest._retry &&
+      !isRefreshRequest
+    ) {
+      originalRequest._retry = true;
+
+      try {
+        const response = await axios.post(
+          `${baseURL}/api/users/refresh-token`,
+          {},
+          { withCredentials: true }
+        );
+
+        const newAccessToken = response.data.accessToken;
+
+        if (!newAccessToken) {
+          throw new Error("Backend không trả access token mới");
+        }
+
+        localStorage.setItem("accessToken", newAccessToken);
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
+        return axiosPickleball(originalRequest);
+      } catch (refreshError) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
+
+        if (window.location.pathname !== "/login") {
+          window.location.replace("/login");
+        }
+
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error);
+  }
 );
 
 export default axiosPickleball;

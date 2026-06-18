@@ -30,7 +30,7 @@ const couponService = {
       "/api/coupons/validate",
       payload
     );
-    return (response as any).data as CouponResult;
+    return (response as { data: CouponResult }).data;
   },
 
   calculateDiscount: async (
@@ -48,7 +48,7 @@ const couponService = {
         categoryIds,
       }
     );
-    return (response as any).data as CalculateDiscountResult;
+    return (response as { data: CalculateDiscountResult }).data;
   },
 };
 

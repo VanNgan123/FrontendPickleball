@@ -56,10 +56,10 @@ interface Product {
   salePrice?: number;
   brand?: string;
   stock: number;
-  categories: any[];
+  categories: (Category | string)[];
   image: string[];
   description?: string;
-  specs?: Record<string, any>;
+  specs?: Record<string, unknown>;
   createdAt: string;
 }
 interface Category {
@@ -111,7 +111,7 @@ const ProductFormDialog = ({
           stock: String(editProduct.stock || 0),
           description: editProduct.description || "",
           categories:
-            editProduct.categories?.map((c: any) =>
+            editProduct.categories?.map((c) =>
               typeof c === "object" ? c._id : c
             ) || [],
           specs: editProduct.specs
@@ -186,8 +186,9 @@ const ProductFormDialog = ({
       }
       onSuccess();
       onClose();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Có lỗi xảy ra");
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error?.response?.data?.message || "Có lỗi xảy ra");
     } finally {
       setSubmitting(false);
     }
@@ -501,11 +502,11 @@ const AdminProducts = () => {
     try {
       setLoading(true);
       const [pRes, cRes] = await Promise.all([
-        axiosPickleball.get("/api/products?limit=0") as Promise<any>,
-        axiosPickleball.get("/api/category") as Promise<any>,
+        axiosPickleball.get("/api/products?limit=0") as Promise<{ data?: Product[] }>,
+        axiosPickleball.get("/api/category") as Promise<Category[] | { data?: Category[] }>,
       ]);
       setProducts(pRes?.data || []);
-      setCategories(Array.isArray(cRes) ? cRes : cRes?.data || []);
+      setCategories(Array.isArray(cRes) ? cRes : (cRes as { data?: Category[] })?.data || []);
     } catch {
       toast.error("Không thể tải dữ liệu");
     } finally {
@@ -544,11 +545,11 @@ const AdminProducts = () => {
       p.brand?.toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
-      let valA: any = a[sortField];
-      let valB: any = b[sortField];
+      let valA: string | number = a[sortField];
+      let valB: string | number = b[sortField];
       if (sortField === "createdAt") {
-        valA = new Date(valA).getTime();
-        valB = new Date(valB).getTime();
+        valA = new Date(valA as string).getTime();
+        valB = new Date(valB as string).getTime();
       }
       return sortDir === "asc" ? (valA > valB ? 1 : -1) : valA < valB ? 1 : -1;
     });
@@ -704,7 +705,7 @@ const AdminProducts = () => {
                         </TableCell>
                         <TableCell>
                           <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-                            {(product.categories || []).slice(0, 2).map((cat: any) => (
+                            {(product.categories || []).slice(0, 2).map((cat) => (
                               <Chip
                                 key={typeof cat === "object" ? cat._id : cat}
                                 label={typeof cat === "object" ? cat.name : cat}

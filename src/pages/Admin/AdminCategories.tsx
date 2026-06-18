@@ -120,8 +120,9 @@ const CategoryFormDialog = ({
       }
       onSuccess();
       onClose();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Có lỗi xảy ra");
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error?.response?.data?.message || "Có lỗi xảy ra");
     } finally {
       setSubmitting(false);
     }
@@ -330,7 +331,7 @@ const AdminCategories = () => {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const res = await axiosPickleball.get("/api/category") as any;
+      const res = (await axiosPickleball.get("/api/category")) as Category[];
       setCategories(Array.isArray(res) ? res : []);
     } catch {
       toast.error("Không thể tải danh mục");

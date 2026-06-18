@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
-	Box, Container, Typography, CircularProgress,
+	Box, Container, Typography,
 	Paper, Grid, Pagination, Divider,
 } from "@mui/material";
 import { Search, X } from "lucide-react";

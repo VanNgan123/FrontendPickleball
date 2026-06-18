@@ -20,7 +20,6 @@ import {
   User,
   Phone,
   Mail,
-  MapPin,
   Shield,
   Edit3,
   Save,
@@ -31,7 +30,7 @@ import {
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store/store";
-import { logout } from "../../store/slices/authSlice";
+import { logoutUser } from "../../store/slices/authSlice";
 import userService from "../../services/userService";
 import type { UserProfile } from "../../services/userService";
 import MainLayout from "../../layout/MainLayout/MainLayout";
@@ -215,7 +214,7 @@ const Profile = () => {
   };
 
   const handleLogout = () => {
-    dispatch(logout());
+    dispatch(logoutUser());
     navigate("/");
     toast.success("Da dang xuat");
   };

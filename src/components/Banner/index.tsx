@@ -1,6 +1,6 @@
 import { Box, Button, Container, IconButton } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { Swiper, SwiperSlide, SwiperRef } from "swiper/react";
 import { Autoplay, EffectFade } from "swiper/modules";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -32,7 +32,7 @@ const mainSlides = [
 
 const Banner = () => {
   const navigate = useNavigate();
-  const swiperRef = useRef<any>(null);
+  const swiperRef = useRef<SwiperRef>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handlePrev = () => {

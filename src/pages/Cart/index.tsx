@@ -6,9 +6,9 @@ import {
   Checkbox, Paper,
 } from "@mui/material";
 import {
-  Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Tag, Truck,
+  Minus, Plus, Trash2, ArrowLeft, Tag, Truck,
   Shield, ChevronRight, PackageCheck, CreditCard, ShoppingCart,
-  Percent, Gift, CheckCircle2,
+  CheckCircle2,
 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "../../store/store";
@@ -122,11 +122,17 @@ const Cart = () => {
       const selectedCategoryIds = Array.from(
         new Set(
           selectedItems
-            .flatMap(item => (item.productId?.categories as any) || [])
-            .map((cat: any) => typeof cat === "object" ? cat._id : cat)
+            .reduce<(string | { _id: string })[]>((acc, item) => {
+              const cats = item.productId?.categories;
+              if (cats) {
+                acc.push(...cats);
+              }
+              return acc;
+            }, [])
+            .map(cat => (cat && typeof cat === "object" ? (cat as { _id: string })._id : String(cat)))
             .filter(Boolean)
         )
-      );
+      ) as string[];
 
       const r = await couponService.calculateDiscount(
         couponCode.trim(),
@@ -135,8 +141,9 @@ const Cart = () => {
         selectedCategoryIds
       );
       setCouponResult(r);
-    } catch (e: any) {
-      setCouponError(e?.response?.data?.message || e?.message || "Mã không hợp lệ");
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { message?: string } }; message?: string };
+      setCouponError(err.response?.data?.message || err.message || "Mã không hợp lệ");
       setCouponResult(null);
     } finally {
       setCouponLoading(false);

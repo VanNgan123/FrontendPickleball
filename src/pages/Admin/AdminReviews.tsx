@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -296,22 +296,22 @@ const AdminReviews = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
 
-  useEffect(() => {
-    loadReviews();
-  }, [filterStatus]);
-
-  const loadReviews = async () => {
+  const loadReviews = useCallback(async () => {
     try {
       setLoading(true);
       const params = filterStatus !== "all" ? `?status=${filterStatus}` : "";
-      const res = await axiosPickleball.get(`/api/reviews${params}`) as any;
+      const res = (await axiosPickleball.get(`/api/reviews${params}`)) as { data?: Review[] };
       setReviews(res?.data || []);
     } catch {
       toast.error("Không thể tải đánh giá");
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus]);
+
+  useEffect(() => {
+    loadReviews();
+  }, [loadReviews]);
 
   const handleStatusChange = async (id: string, status: string) => {
     await axiosPickleball.put(`/api/reviews/${id}/status`, { status });

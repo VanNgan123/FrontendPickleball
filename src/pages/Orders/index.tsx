@@ -8,7 +8,7 @@ import Grid from "@mui/material/Grid";
 import {
   Package, ChevronRight, ShoppingBag, MapPin, Clock,
   CheckCircle2, Truck, XCircle, RefreshCw, CreditCard,
-  User, Phone, MapPinned, FileText, ShieldAlert, ShieldCheck,
+  User, Phone, MapPinned, ShieldAlert, ShieldCheck,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
@@ -151,16 +151,6 @@ const getPaymentBadge = (order: Order) => {
   };
 };
 
-const getPaymentStatusText = (order: Order) => {
-  const paymentStatus = order.paymentStatus || "Unpaid";
-  const isPaid = paymentStatus === "Paid" && Boolean(order.paidAt);
-
-  if (order.paymentMethod === "COD") return "Chờ thanh toán khi nhận hàng";
-  if (isPaid) return "Đã thanh toán";
-  if (paymentStatus === "Failed") return "Thanh toán thất bại";
-  if (paymentStatus === "Refunded") return "Đã hoàn tiền";
-  return "Chưa thanh toán";
-};
 
 const TABS = [
   { value: "all", label: "Tất cả" },
@@ -203,8 +193,9 @@ const OrderPayButton = ({
       } else {
         toast.error(res.message || "Không thể tạo liên kết thanh toán");
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Lỗi kết nối đến server");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      toast.error(err.response?.data?.message || "Lỗi kết nối đến server");
     } finally {
       setIsPaying(false);
     }
@@ -416,38 +407,14 @@ const OrderCard = ({
           </Box>
 
           <Chip
-            label={
-              order.paymentMethod === "COD"
-                ? "Thanh toán COD"
-                : order.paymentStatus === "Paid" && Boolean(order.paidAt)
-                ? "Đã thanh toán online"
-                : order.paymentStatus === "Failed"
-                ? "Thanh toán online thất bại"
-                : order.paymentStatus === "Refunded"
-                ? "Đã hoàn tiền"
-                : "Chờ thanh toán online"
-            }
+            label={paymentBadge.label}
             size="small"
             sx={{
               height: 22,
               fontSize: "0.75rem",
               fontWeight: 800,
-              bgcolor:
-                order.paymentMethod === "COD"
-                  ? "rgba(15,23,42,0.06)"
-                  : order.paymentStatus === "Paid" && Boolean(order.paidAt)
-                  ? "rgba(16,185,129,0.1)"
-                  : order.paymentStatus === "Failed" || order.paymentStatus === "Refunded"
-                  ? "rgba(239, 68, 68, 0.1)"
-                  : "rgba(217, 119, 6, 0.1)",
-              color:
-                order.paymentMethod === "COD"
-                  ? T.textSub
-                  : order.paymentStatus === "Paid" && Boolean(order.paidAt)
-                  ? "#059669"
-                  : order.paymentStatus === "Failed" || order.paymentStatus === "Refunded"
-                  ? "#EF4444"
-                  : "#D97706",
+              bgcolor: paymentBadge.bg,
+              color: paymentBadge.color,
             }}
           />
         </Box>

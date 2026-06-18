@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store/store";
-import { fetchCart, resetCart } from "../../store/slices/cartSlice";
+import { fetchCart } from "../../store/slices/cartSlice";
 import orderService from "../../services/orderService";
 import type { ShippingAddress } from "../../services/orderService";
 import paymentService from "../../services/paymentService";
@@ -210,22 +210,19 @@ const Checkout = () => {
       const orderItems = checkoutItems.map(item => ({
         productId: item.productId._id,
         qty: item.qty,
-        price: item.productId.salePrice || item.productId.price,
       }));
 
       const result = await orderService.createOrder({
         items: orderItems,
         shippingAddress: form,
         paymentMethod,
-        total: finalTotal,
         couponCode,
       });
 
-      // Xu ly theo phuong thuc thanh toan
-      if (paymentMethod === "COD") {
-        dispatch(resetCart());
-        dispatch(fetchCart());
+      // Backend đã xóa đúng các item được đặt.
+      dispatch(fetchCart());
 
+      if (paymentMethod === "COD") {
         toast.success("Đặt hàng thành công! 🎉");
         navigate(`/order-success/${result.data._id}`, {
           state: { order: result.data },
@@ -234,25 +231,25 @@ const Checkout = () => {
       }
 
       if (paymentMethod === "VNPay") {
-        const paymentResult = await paymentService.createVNPayUrl(result.data._id);
+        const paymentResult = await paymentService.createVNPayUrl(
+          result.data._id
+        );
 
         if (!paymentResult.paymentUrl) {
-          toast.error("Không tạo được link thanh toán VNPay");
+          toast.error("Không tạo được liên kết thanh toán VNPay");
           return;
         }
 
-        dispatch(resetCart());
-        dispatch(fetchCart());
-
-        window.location.href = paymentResult.paymentUrl;
+        window.location.assign(paymentResult.paymentUrl);
         return;
       }
 
       toast.error("Phương thức thanh toán này chưa được hỗ trợ");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
       const msg =
-        error?.response?.data?.message ||
-        error?.message ||
+        err.response?.data?.message ||
+        err.message ||
         "Đặt hàng thất bại, vui lòng thử lại";
       toast.error(msg);
     } finally {
