@@ -76,10 +76,16 @@ const PAYMENT_LABEL: Record<string, string> = {
   BankTransfer: "Chuyển khoản",
 };
 
+interface OrderItemProduct {
+  _id: string;
+  name?: string;
+  image?: string[];
+}
+
 interface Order {
   _id: string;
   userId?: { _id: string; name: string; email: string };
-  items: { productId: any; qty: number; price: number }[];
+  items: { productId: OrderItemProduct; qty: number; price: number }[];
   shippingAddress: { fullName: string; phone: string; address: string; city: string; district: string; ward: string };
   paymentMethod: string;
   total: number;
@@ -343,7 +349,7 @@ const AdminOrders = () => {
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const res = await axiosPickleball.get("/api/orders") as any;
+      const res = (await axiosPickleball.get("/api/orders")) as { data?: Order[] };
       setOrders(res?.data || []);
     } catch {
       toast.error("Không thể tải đơn hàng");
@@ -409,7 +415,7 @@ const AdminOrders = () => {
       </Box>
 
       <Box sx={{ display: "flex", gap: 1.5, mb: 3, flexWrap: "wrap" }}>
-        {[{ key: "all", label: "Tất cả", count: orders.length }, ...STATUS_ORDER.map((s) => ({
+        {[{ key: "all", label: "Tất cả", count: orders.length, color: "#E60023", bg: "rgba(230,0,35,0.08)" }, ...STATUS_ORDER.map((s) => ({
           key: s,
           label: STATUS_CONFIG[s].label,
           count: statCounts[s],
@@ -428,15 +434,15 @@ const AdminOrders = () => {
               borderRadius: 1.5,
               cursor: "pointer",
               border: "1.5px solid",
-              borderColor: filterStatus === item.key ? ((item as any).color || "#E60023") : "#e0e0e0",
-              bgcolor: filterStatus === item.key ? ((item as any).bg || "rgba(230,0,35,0.08)") : "#fff",
+              borderColor: filterStatus === item.key ? item.color : "#e0e0e0",
+              bgcolor: filterStatus === item.key ? item.bg : "#fff",
               transition: "all 0.15s ease",
-              "&:hover": { borderColor: (item as any).color || "#E60023" },
+              "&:hover": { borderColor: item.color },
             }}
           >
             <Typography
               variant="caption"
-              sx={{ fontWeight: 700, color: filterStatus === item.key ? ((item as any).color || "#E60023") : "#555" }}
+              sx={{ fontWeight: 700, color: filterStatus === item.key ? item.color : "#555" }}
             >
               {item.label} ({item.count})
             </Typography>

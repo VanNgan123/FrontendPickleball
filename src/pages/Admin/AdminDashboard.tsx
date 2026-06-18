@@ -4,7 +4,6 @@ import {
   Box,
   Typography,
   Paper,
-  CircularProgress,
   Chip,
   Avatar,
 } from "@mui/material";
@@ -38,6 +37,36 @@ import AdminLayout from "../../layout/AdminLayout/AdminLayout";
 import axiosPickleball from "../../api/axiosPickleball";
 import { DashboardSkeleton } from "../../components/Skeletons";
 
+interface DashboardOrder {
+  _id: string;
+  status: string;
+  total: number;
+  createdAt: string;
+  userId?: { name?: string };
+}
+
+interface DashboardProduct {
+  _id: string;
+  name: string;
+  price: number;
+  salePrice?: number;
+  image?: string[];
+  stock: number;
+}
+
+interface DashboardReview {
+  _id: string;
+}
+
+interface ChartDataItem {
+  name: string;
+  value: number;
+}
+
+interface RevenueDataItem {
+  month: string;
+  revenue: number;
+}
 
 const formatPrice = (price: number) => price.toLocaleString("vi-VN") + "đ";
 
@@ -144,10 +173,10 @@ const AdminDashboard = () => {
     cancelledOrders: 0,
   });
 
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
-  const [ordersByStatus, setOrdersByStatus] = useState<any[]>([]);
-  const [revenueData, setRevenueData] = useState<any[]>([]);
-  const [topProducts, setTopProducts] = useState<any[]>([]);
+  const [recentOrders, setRecentOrders] = useState<DashboardOrder[]>([]);
+  const [ordersByStatus, setOrdersByStatus] = useState<ChartDataItem[]>([]);
+  const [revenueData, setRevenueData] = useState<RevenueDataItem[]>([]);
+  const [topProducts, setTopProducts] = useState<DashboardProduct[]>([]);
 
   useEffect(() => {
     loadDashboardData();
@@ -158,22 +187,22 @@ const AdminDashboard = () => {
       setLoading(true);
 
       const [ordersRes, productsRes, reviewsRes] = await Promise.all([
-        axiosPickleball.get("/api/orders") as Promise<any>,
-        axiosPickleball.get("/api/products?limit=0") as Promise<any>,
-        axiosPickleball.get("/api/reviews") as Promise<any>,
+        axiosPickleball.get("/api/orders") as Promise<{ data?: DashboardOrder[] }>,
+        axiosPickleball.get("/api/products?limit=0") as Promise<{ data?: DashboardProduct[] }>,
+        axiosPickleball.get("/api/reviews") as Promise<{ data?: DashboardReview[] }>,
       ]);
 
-      const orders: any[] = ordersRes?.data || [];
-      const products: any[] = productsRes?.data || [];
-      const reviews: any[] = reviewsRes?.data || [];
+      const orders: DashboardOrder[] = ordersRes?.data || [];
+      const products: DashboardProduct[] = productsRes?.data || [];
+      const reviews: DashboardReview[] = reviewsRes?.data || [];
 
       const totalRevenue = orders
-        .filter((o: any) => o.status === "Completed")
-        .reduce((sum: number, o: any) => sum + (o.total || 0), 0);
+        .filter((o) => o.status === "Completed")
+        .reduce((sum: number, o) => sum + (o.total || 0), 0);
 
-      const pendingOrders = orders.filter((o: any) => o.status === "Pending").length;
-      const completedOrders = orders.filter((o: any) => o.status === "Completed").length;
-      const cancelledOrders = orders.filter((o: any) => o.status === "Cancelled").length;
+      const pendingOrders = orders.filter((o) => o.status === "Pending").length;
+      const completedOrders = orders.filter((o) => o.status === "Completed").length;
+      const cancelledOrders = orders.filter((o) => o.status === "Cancelled").length;
 
       setStats({
         totalOrders: orders.length,
@@ -187,14 +216,14 @@ const AdminDashboard = () => {
 
       setRecentOrders(
         [...orders]
-          .sort((a: any, b: any) =>
+          .sort((a, b) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           )
           .slice(0, 5)
       );
 
       const statusCount: Record<string, number> = {};
-      orders.forEach((o: any) => {
+      orders.forEach((o) => {
         statusCount[o.status] = (statusCount[o.status] || 0) + 1;
       });
       setOrdersByStatus(
@@ -206,8 +235,8 @@ const AdminDashboard = () => {
 
       const monthlyRevenue: Record<string, number> = {};
       orders
-        .filter((o: any) => o.status === "Completed")
-        .forEach((o: any) => {
+        .filter((o) => o.status === "Completed")
+        .forEach((o) => {
           const month = new Date(o.createdAt).toLocaleDateString("vi-VN", {
             month: "short",
             year: "2-digit",
@@ -231,7 +260,7 @@ const AdminDashboard = () => {
 
       setTopProducts(
         [...products]
-          .sort((a: any, b: any) => a.stock - b.stock)
+          .sort((a, b) => a.stock - b.stock)
           .slice(0, 5)
       );
     } catch (err) {

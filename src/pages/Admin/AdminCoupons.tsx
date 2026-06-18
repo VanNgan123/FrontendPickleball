@@ -76,10 +76,9 @@ const CouponFormDialog = ({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const today = new Date().toISOString().split("T")[0];
-
   useEffect(() => {
     if (open) {
+      const today = new Date().toISOString().split("T")[0];
       if (editCoupon) {
         setForm({
           code: editCoupon.code,
@@ -156,8 +155,9 @@ const CouponFormDialog = ({
       }
       onSuccess();
       onClose();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Có lỗi xảy ra");
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error?.response?.data?.message || "Có lỗi xảy ra");
     } finally {
       setSubmitting(false);
     }
@@ -224,7 +224,7 @@ const CouponFormDialog = ({
               fullWidth
               label="Loại giảm giá"
               value={form.discountType}
-              onChange={(e) => setForm((p) => ({ ...p, discountType: e.target.value as any }))}
+              onChange={(e) => setForm((p) => ({ ...p, discountType: e.target.value as "percentage" | "fixed" }))}
               SelectProps={{ native: true }}
               sx={textFieldSx}
             >
@@ -400,7 +400,7 @@ const AdminCoupons = () => {
   const loadCoupons = async () => {
     try {
       setLoading(true);
-      const res = await axiosPickleball.get("/api/coupons") as any;
+      const res = (await axiosPickleball.get("/api/coupons")) as { data?: Coupon[] };
       setCoupons(res?.data || []);
     } catch {
       toast.error("Không thể tải coupon");
