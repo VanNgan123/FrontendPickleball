@@ -106,22 +106,24 @@ export const ProfileSkeleton = () => (
 );
 
 // ── Cart Skeleton ──
+const staticSkeletonProps = { animation: false as const };
+
 export const CartSkeleton = () => (
   <Grid container spacing={3}>
     <Grid size={{ xs: 12, lg: 8 }}>
       <Paper elevation={0} sx={{ border: "1px solid #eee", borderRadius: 2, overflow: "hidden" }}>
         <Box sx={{ px: 3, py: 2, bgcolor: "#fafafa", borderBottom: "1px solid #f0f0f0" }}>
-          <Skeleton width={160} height={20} />
+          <Skeleton {...staticSkeletonProps} width={160} height={20} />
         </Box>
         {[1, 2, 3].map((i) => (
           <Box key={i} sx={{ display: "flex", gap: 2, px: 3, py: 2.5, borderBottom: "1px solid #f0f0f0" }}>
-            <Skeleton variant="rectangular" width={90} height={90} sx={{ borderRadius: 2, flexShrink: 0 }} />
+            <Skeleton {...staticSkeletonProps} variant="rectangular" width={90} height={90} sx={{ borderRadius: 2, flexShrink: 0 }} />
             <Box sx={{ flexGrow: 1 }}>
-              <Skeleton width="70%" height={18} sx={{ mb: 1 }} />
-              <Skeleton width="30%" height={16} sx={{ mb: 1.5 }} />
+              <Skeleton {...staticSkeletonProps} width="70%" height={18} sx={{ mb: 1 }} />
+              <Skeleton {...staticSkeletonProps} width="30%" height={16} sx={{ mb: 1.5 }} />
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <Skeleton variant="rectangular" width={110} height={36} sx={{ borderRadius: 2 }} />
-                <Skeleton width={80} height={20} />
+                <Skeleton {...staticSkeletonProps} variant="rectangular" width={110} height={36} sx={{ borderRadius: 2 }} />
+                <Skeleton {...staticSkeletonProps} width={80} height={20} />
               </Box>
             </Box>
           </Box>
@@ -129,8 +131,8 @@ export const CartSkeleton = () => (
       </Paper>
     </Grid>
     <Grid size={{ xs: 12, lg: 4 }}>
-      <Skeleton variant="rectangular" height={140} sx={{ borderRadius: 2, mb: 2 }} />
-      <Skeleton variant="rectangular" height={260} sx={{ borderRadius: 2 }} />
+      <Skeleton {...staticSkeletonProps} variant="rectangular" height={140} sx={{ borderRadius: 2, mb: 2 }} />
+      <Skeleton {...staticSkeletonProps} variant="rectangular" height={260} sx={{ borderRadius: 2 }} />
     </Grid>
   </Grid>
 );

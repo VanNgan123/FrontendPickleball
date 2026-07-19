@@ -47,10 +47,98 @@ const T = {
   shadowHover: "0 20px 40px rgba(15,23,42,0.12)",
 };
 
+/* ─── EmptyState phải định nghĩa NGOÀI Cart để React không tạo lại
+   function reference mỗi render (tránh unmount/remount liên tục) ─── */
+const EmptyState = ({
+  title, sub, btnText, btnAction, isAuth = false,
+}: {
+  title: string;
+  sub: string;
+  btnText: string;
+  btnAction: () => void;
+  isAuth?: boolean;
+}) => (
+  <MainLayout>
+    <Box
+      sx={{
+        bgcolor: T.bgPage,
+        minHeight: "75vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        py: 8,
+      }}
+    >
+      <Container maxWidth="sm">
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 4, md: 6 },
+            textAlign: "center",
+            borderRadius: 5,
+            border: `1px solid ${T.border}`,
+            bgcolor: T.bgCard,
+            boxShadow: "0 20px 50px rgba(15,23,42,0.06)",
+          }}
+        >
+          <Box
+            sx={{
+              width: 110,
+              height: 110,
+              borderRadius: "50%",
+              bgcolor: "rgba(132,204,22,0.1)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              mx: "auto",
+              mb: 3.5,
+              border: `2px dashed ${T.lime}`,
+            }}
+          >
+            {isAuth ? (
+              <Shield size={46} color={T.teal} strokeWidth={1.5} />
+            ) : (
+              <ShoppingCart size={46} color={T.teal} strokeWidth={1.5} />
+            )}
+          </Box>
+          <Typography variant="h5" sx={{ fontWeight: 900, color: T.navy, mb: 1.5 }}>
+            {title}
+          </Typography>
+          <Typography sx={{ color: T.textSub, mb: 4, fontSize: "0.95rem", lineHeight: 1.6 }}>
+            {sub}
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={btnAction}
+            sx={{
+              bgcolor: T.teal,
+              color: "#fff",
+              fontWeight: 800,
+              px: 5,
+              py: 1.5,
+              borderRadius: 99,
+              fontSize: "0.95rem",
+              textTransform: "none",
+              boxShadow: `0 8px 24px rgba(15,118,110,0.25)`,
+              "&:hover": {
+                bgcolor: T.navy,
+                boxShadow: `0 8px 24px rgba(15,23,42,0.25)`,
+              },
+              transition: "all 250ms ease",
+            }}
+          >
+            {btnText}
+          </Button>
+        </Paper>
+      </Container>
+    </Box>
+  </MainLayout>
+);
+
 const Cart = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { items, loading, actionLoading } = useSelector((s: RootState) => s.cart);
+  const { items, loading, actionLoading, error: cartError } = useSelector((s: RootState) => s.cart);
   const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
 
   const [couponCode, setCouponCode] = useState("");
@@ -67,7 +155,7 @@ const Cart = () => {
 
   // Select all items automatically when cart items load
   useEffect(() => {
-    setSelectedIds(items.map(i => i.productId?._id).filter(Boolean));
+    setSelectedIds(items.map(i => i.productId?._id).filter(Boolean) as string[]);
   }, [items]);
 
   // Reset coupon calculation when items list changes
@@ -106,7 +194,7 @@ const Cart = () => {
 
   const toggleAll = () =>
     setSelectedIds(prev =>
-      prev.length === items.length ? [] : items.map(i => i.productId?._id).filter(Boolean)
+      prev.length === items.length ? [] : items.map(i => i.productId?._id).filter(Boolean) as string[]
     );
 
   const handleApplyCoupon = async () => {
@@ -117,7 +205,7 @@ const Cart = () => {
     try {
       setCouponLoading(true);
       setCouponError(null);
-      
+
       const selectedProductIds = selectedItems.map(item => item.productId?._id).filter(Boolean);
       const selectedCategoryIds = Array.from(
         new Set(
@@ -157,84 +245,7 @@ const Cart = () => {
   const total = subtotal - discount + shipping;
   const totalQty = selectedItems.reduce((s, i) => s + i.qty, 0);
 
-  /* ─── Premium empty state ─── */
-  const EmptyState = ({ title, sub, btnText, btnAction, isAuth = false }: { title: string; sub: string; btnText: string; btnAction: () => void; isAuth?: boolean }) => (
-    <MainLayout>
-      <Box
-        sx={{
-          bgcolor: T.bgPage,
-          minHeight: "75vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          py: 8,
-        }}
-      >
-        <Container maxWidth="sm">
-          <Paper
-            elevation={0}
-            sx={{
-              p: { xs: 4, md: 6 },
-              textAlign: "center",
-              borderRadius: 5,
-              border: `1px solid ${T.border}`,
-              bgcolor: T.bgCard,
-              boxShadow: "0 20px 50px rgba(15,23,42,0.06)",
-            }}
-          >
-            <Box
-              sx={{
-                width: 110,
-                height: 110,
-                borderRadius: "50%",
-                bgcolor: "rgba(132,204,22,0.1)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                mx: "auto",
-                mb: 3.5,
-                border: `2px dashed ${T.lime}`,
-              }}
-            >
-              {isAuth ? (
-                <Shield size={46} color={T.teal} strokeWidth={1.5} />
-              ) : (
-                <ShoppingCart size={46} color={T.teal} strokeWidth={1.5} />
-              )}
-            </Box>
-            <Typography variant="h5" sx={{ fontWeight: 900, color: T.navy, mb: 1.5 }}>
-              {title}
-            </Typography>
-            <Typography sx={{ color: T.textSub, mb: 4, fontSize: "0.95rem", lineHeight: 1.6 }}>
-              {sub}
-            </Typography>
-            <Button
-              variant="contained"
-              onClick={btnAction}
-              sx={{
-                bgcolor: T.teal,
-                color: "#fff",
-                fontWeight: 800,
-                px: 5,
-                py: 1.5,
-                borderRadius: 99,
-                fontSize: "0.95rem",
-                textTransform: "none",
-                boxShadow: `0 8px 24px rgba(15,118,110,0.25)`,
-                "&:hover": {
-                  bgcolor: T.navy,
-                  boxShadow: `0 8px 24px rgba(15,23,42,0.25)`,
-                },
-                transition: "all 250ms ease",
-              }}
-            >
-              {btnText}
-            </Button>
-          </Paper>
-        </Container>
-      </Box>
-    </MainLayout>
-  );
+  /* EmptyState đã được chuyển ra ngoài Cart (phía trên) để tránh lỗi React */
 
   if (!isAuthenticated) {
     return (
@@ -261,6 +272,17 @@ const Cart = () => {
           <CartSkeleton />
         </Container>
       </MainLayout>
+    );
+  }
+
+  if (!loading && cartError && !items.length) {
+    return (
+      <EmptyState
+        title="Không thể tải giỏ hàng"
+        sub={`Đã xảy ra lỗi: ${cartError}. Vui lòng thử lại.`}
+        btnText="Thử lại"
+        btnAction={() => dispatch(fetchCart())}
+      />
     );
   }
 
