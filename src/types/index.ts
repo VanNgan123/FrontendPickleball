@@ -84,7 +84,7 @@ export interface Cart {
 }
 
 export interface CartResponse {
-  success: boolean;
+  status: string;
   message?: string;
   data: Cart;
 }

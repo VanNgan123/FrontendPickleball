@@ -71,12 +71,14 @@ const Header = () => {
     if (isAuthenticated && !hasFetchedRef.current) {
       hasFetchedRef.current = true;
       dispatch(fetchUserProfile());
-      dispatch(fetchCart());
+      if (location.pathname !== "/cart") {
+        dispatch(fetchCart());
+      }
     }
     if (!isAuthenticated) {
       hasFetchedRef.current = false;
     }
-  }, [isAuthenticated, dispatch]);
+  }, [isAuthenticated, location.pathname, dispatch]);
 
   useEffect(() => {
     if (!debouncedQuery.trim() || debouncedQuery.length < 2) {

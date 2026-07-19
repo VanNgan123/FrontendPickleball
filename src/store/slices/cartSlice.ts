@@ -50,15 +50,26 @@ export const fetchCart = createAsyncThunk<
   CartItem[],
   void,
   { rejectValue: string }
->("cart/fetch", async (_, { rejectWithValue, getState }) => {
+>(
+  "cart/fetch",
+  async (_, { rejectWithValue, getState }) => {
   try {
     ensureAuthenticated(getState);
     const data = await cartService.getCart();
-    return data.data?.items || [];
+    // axiosPickleball interceptor đã unwrap response.data
+    // nên data = { status: "OK", data: { userId, items: [...] } }
+    return data?.data?.items ?? [];
   } catch (error: unknown) {
     return rejectWithValue(extractErrorMessage(error, "Không thể tải giỏ hàng"));
   }
-});
+  },
+  {
+    condition: (_, { getState }) => {
+      const state = getState() as RootState;
+      return !state.cart.loading;
+    },
+  }
+);
 
 /** Thêm vào giỏ */
 export const addToCart = createAsyncThunk<
@@ -69,7 +80,7 @@ export const addToCart = createAsyncThunk<
   try {
     ensureAuthenticated(getState);
     const data = await cartService.addToCart(productId, qty);
-    return data.data?.items || [];
+    return data?.data?.items ?? [];
   } catch (error: unknown) {
     return rejectWithValue(extractErrorMessage(error, "Thêm vào giỏ thất bại"));
   }
@@ -86,7 +97,7 @@ export const updateCartItem = createAsyncThunk<
     try {
       ensureAuthenticated(getState);
       const data = await cartService.updateCartItem(productId, qty);
-      return data.data?.items || [];
+      return data?.data?.items ?? [];
     } catch (error: unknown) {
       return rejectWithValue(extractErrorMessage(error, "Cập nhật thất bại"));
     }
@@ -102,7 +113,7 @@ export const removeFromCart = createAsyncThunk<
   try {
     ensureAuthenticated(getState);
     const data = await cartService.removeFromCart(productId);
-    return data.data?.items || [];
+    return data?.data?.items ?? [];
   } catch (error: unknown) {
     return rejectWithValue(extractErrorMessage(error, "Xóa thất bại"));
   }
@@ -193,9 +204,18 @@ const cartSlice = createSlice({
       });
 
     // clearCart
-    builder.addCase(clearCart.fulfilled, (state) => {
-      state.items = [];
-    });
+    builder
+      .addCase(clearCart.pending, (state) => {
+        state.actionLoading = true;
+      })
+      .addCase(clearCart.fulfilled, (state) => {
+        state.actionLoading = false;
+        state.items = [];
+      })
+      .addCase(clearCart.rejected, (state, action) => {
+        state.actionLoading = false;
+        state.error = action.payload || "Xóa giỏ thất bại";
+      });
   },
 });
 
