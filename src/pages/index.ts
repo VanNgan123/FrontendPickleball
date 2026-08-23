@@ -8,7 +8,6 @@ export { default as Orders } from "./Orders";
 // export {default as Products} from "./Products";
 export {default as ProductDetail} from "./ProductDetail";
 export {default as Cart} from "./Cart";
-export {default as ByCategoryProducts} from "./ByCategoryProduct";
 export {default as Buy} from "./Buy";
 // export {default as OrderHistoryPage} from "./Order";
 

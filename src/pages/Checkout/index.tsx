@@ -202,6 +202,12 @@ const Checkout = () => {
       toast.error("Chưa chọn sản phẩm nào để thanh toán");
       return;
     }
+
+    // Kiểm tra phương thức thanh toán có được hỗ trợ hay không trước khi tạo đơn hàng
+    if (paymentMethod !== "COD" && paymentMethod !== "VNPay") {
+      toast.error("Phương thức thanh toán này chưa được hỗ trợ");
+      return;
+    }
     
     try {
       setSubmitting(true);

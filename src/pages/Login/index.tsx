@@ -17,11 +17,11 @@ import {
   Email,
   Lock,
   SportsBaseball,
-  ArrowBack,
 } from "@mui/icons-material";
 import { loginUser, clearAuthError } from "../../store/slices/authSlice";
 import type { AppDispatch, RootState } from "../../store/store";
 import toast from "react-hot-toast";
+import MainLayout from "../../layout/MainLayout/MainLayout";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -86,15 +86,8 @@ const Login = () => {
   };
 
   return (
-    <Box sx={styles.pageWrapper}>
-      {/* Back button */}
-      <IconButton 
-        onClick={() => navigate(-1)} 
-        sx={styles.backButton}
-      >
-        <ArrowBack />
-      </IconButton>
-
+    <MainLayout>
+      <Box sx={styles.pageWrapper}>
       {/* Animated background */}
       <Box sx={styles.bgOrbs}>
         <Box sx={styles.orb1} />
@@ -248,7 +241,8 @@ const Login = () => {
           </Box>
         </Box>
       </Box>
-    </Box>
+      </Box>
+    </MainLayout>
   );
 };
 
@@ -293,30 +287,14 @@ const shimmer = {
 
 const styles = {
   pageWrapper: {
-    minHeight: "100vh",
+    minHeight: { xs: "auto", md: "calc(100vh - 78px)" },
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     background: "#f4f6f8",
     position: "relative",
     overflow: "hidden",
-    p: { xs: 2, md: 0 },
-  },
-  backButton: {
-    position: "absolute",
-    top: { xs: 16, md: 24 },
-    left: { xs: 16, md: 24 },
-    bgcolor: "rgba(255, 255, 255, 0.8)",
-    backdropFilter: "blur(8px)",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-    zIndex: 10,
-    color: "#002c4b",
-    transition: "all 0.3s ease",
-    "&:hover": {
-      bgcolor: "#ffffff",
-      transform: "translateY(-2px)",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-    },
+    p: { xs: 2, md: 5 },
   },
   bgOrbs: {
     position: "absolute",

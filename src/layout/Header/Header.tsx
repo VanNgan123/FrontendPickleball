@@ -15,6 +15,7 @@ import { X, TrendingUp } from "lucide-react";
 import axiosPickleball from "../../api/axiosPickleball";
 import logoImage from "../../assets/logo/image.png";
 import { Product } from "../../types";
+import NotificationBell from "../../components/NotificationBell/NotificationBell";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -447,6 +448,7 @@ const Header = () => {
 
             {isAuthenticated ? (
               <>
+                <NotificationBell />
                 <IconButton
                   onClick={(e) => setAnchorEl(e.currentTarget)}
                   sx={{

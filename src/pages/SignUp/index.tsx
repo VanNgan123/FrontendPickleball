@@ -21,11 +21,11 @@ import {
   Phone,
   SportsBaseball,
   CheckCircle,
-  ArrowBack,
 } from "@mui/icons-material";
 import { registerUser, clearAuthError } from "../../store/slices/authSlice";
 import type { AppDispatch, RootState } from "../../store/store";
 import toast from "react-hot-toast";
+import MainLayout from "../../layout/MainLayout/MainLayout";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -145,135 +145,189 @@ const SignUp = () => {
   };
 
   return (
-    <Box sx={styles.pageWrapper}>
-      {/* Back button */}
-      <IconButton 
-        onClick={() => navigate(-1)} 
-        sx={styles.backButton}
-      >
-        <ArrowBack />
-      </IconButton>
+    <MainLayout>
+      <Box sx={styles.pageWrapper}>
+        {/* Animated background */}
+        <Box sx={styles.bgOrbs}>
+          <Box sx={styles.orb1} />
+          <Box sx={styles.orb2} />
+          <Box sx={styles.orb3} />
+          <Box sx={styles.orb4} />
+        </Box>
 
-      {/* Animated background */}
-      <Box sx={styles.bgOrbs}>
-        <Box sx={styles.orb1} />
-        <Box sx={styles.orb2} />
-        <Box sx={styles.orb3} />
-        <Box sx={styles.orb4} />
-      </Box>
-
-      {/* Main content */}
-      <Box sx={styles.container}>
-        {/* Left side - form */}
-        <Box sx={styles.formSide}>
-          <Box sx={styles.formCard}>
-            <Box sx={styles.mobileLogoRow}>
-              <SportsBaseball sx={{ color: "#dc2626", fontSize: "28px" }} />
-              <Typography sx={styles.mobileLogoText}>PickleballStore</Typography>
-            </Box>
-
-            <Typography sx={styles.formTitle}>Tạo tài khoản mới ✨</Typography>
-            <Typography sx={styles.formSubtitle}>
-              Đăng ký để bắt đầu trải nghiệm mua sắm tuyệt vời
-            </Typography>
-
-            {error && (
-              <Alert severity="error" sx={styles.alert} onClose={() => dispatch(clearAuthError())}>
-                {error}
-              </Alert>
-            )}
-
-            <Box component="form" onSubmit={handleSubmit} sx={styles.form}>
-              {/* Row 1: name & phone */}
-              <Box sx={styles.formRow}>
-                <TextField
-                  id="signup-name"
-                  fullWidth
-                  label="Họ và tên"
-                  placeholder="Nguyễn Văn A"
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    setNameError("");
-                  }}
-                  error={!!nameError}
-                  helperText={nameError}
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Person sx={{ color: "#94a3b8" }} />
-                        </InputAdornment>
-                      ),
-                    }
-                  }}
-                  sx={styles.textField}
-                />
-                <TextField
-                  id="signup-phone"
-                  fullWidth
-                  label="Số điện thoại"
-                  placeholder="0912345678"
-                  value={phone}
-                  onChange={(e) => {
-                    setPhone(e.target.value);
-                    setPhoneError("");
-                  }}
-                  error={!!phoneError}
-                  helperText={phoneError}
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Phone sx={{ color: "#94a3b8" }} />
-                        </InputAdornment>
-                      ),
-                    }
-                  }}
-                  sx={styles.textField}
-                />
+        {/* Main content */}
+        <Box sx={styles.container}>
+          {/* Left side - form */}
+          <Box sx={styles.formSide}>
+            <Box sx={styles.formCard}>
+              <Box sx={styles.mobileLogoRow}>
+                <SportsBaseball sx={{ color: "#dc2626", fontSize: "28px" }} />
+                <Typography sx={styles.mobileLogoText}>PickleballStore</Typography>
               </Box>
 
-              {/* Email */}
-              <TextField
-                id="signup-email"
-                fullWidth
-                label="Email"
-                placeholder="example@email.com"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setEmailError("");
-                }}
-                error={!!emailError}
-                helperText={emailError}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Email sx={{ color: "#94a3b8" }} />
-                      </InputAdornment>
-                    ),
-                  }
-                }}
-                sx={styles.textField}
-              />
+              <Typography sx={styles.formTitle}>Tạo tài khoản mới ✨</Typography>
+              <Typography sx={styles.formSubtitle}>
+                Đăng ký để bắt đầu trải nghiệm mua sắm tuyệt vời
+              </Typography>
 
-              {/* Password */}
-              <Box>
+              {error && (
+                <Alert severity="error" sx={styles.alert} onClose={() => dispatch(clearAuthError())}>
+                  {error}
+                </Alert>
+              )}
+
+              <Box component="form" onSubmit={handleSubmit} sx={styles.form}>
+                {/* Row 1: name & phone */}
+                <Box sx={styles.formRow}>
+                  <TextField
+                    id="signup-name"
+                    fullWidth
+                    label="Họ và tên"
+                    placeholder="Nguyễn Văn A"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      setNameError("");
+                    }}
+                    error={!!nameError}
+                    helperText={nameError}
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Person sx={{ color: "#94a3b8" }} />
+                          </InputAdornment>
+                        ),
+                      }
+                    }}
+                    sx={styles.textField}
+                  />
+                  <TextField
+                    id="signup-phone"
+                    fullWidth
+                    label="Số điện thoại"
+                    placeholder="0912345678"
+                    value={phone}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      setPhoneError("");
+                    }}
+                    error={!!phoneError}
+                    helperText={phoneError}
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Phone sx={{ color: "#94a3b8" }} />
+                          </InputAdornment>
+                        ),
+                      }
+                    }}
+                    sx={styles.textField}
+                  />
+                </Box>
+
+                {/* Email */}
                 <TextField
-                  id="signup-password"
+                  id="signup-email"
                   fullWidth
-                  label="Mật khẩu"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
+                  label="Email"
+                  placeholder="example@email.com"
+                  value={email}
                   onChange={(e) => {
-                    setPassword(e.target.value);
-                    setPasswordError("");
+                    setEmail(e.target.value);
+                    setEmailError("");
                   }}
-                  error={!!passwordError}
-                  helperText={passwordError}
+                  error={!!emailError}
+                  helperText={emailError}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Email sx={{ color: "#94a3b8" }} />
+                        </InputAdornment>
+                      ),
+                    }
+                  }}
+                  sx={styles.textField}
+                />
+
+                {/* Password */}
+                <Box>
+                  <TextField
+                    id="signup-password"
+                    fullWidth
+                    label="Mật khẩu"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setPasswordError("");
+                    }}
+                    error={!!passwordError}
+                    helperText={passwordError}
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Lock sx={{ color: "#94a3b8" }} />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={() => setShowPassword(!showPassword)}
+                              edge="end"
+                              sx={{ color: "#94a3b8" }}
+                            >
+                              {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }
+                    }}
+                    sx={styles.textField}
+                  />
+                  {password && (
+                    <Box sx={{ mt: 1 }}>
+                      <LinearProgress
+                        variant="determinate"
+                        value={strength.score}
+                        sx={{
+                          height: 4,
+                          borderRadius: 2,
+                          backgroundColor: "rgba(148,163,184,0.15)",
+                          "& .MuiLinearProgress-bar": {
+                            borderRadius: 2,
+                            backgroundColor: strength.color,
+                            transition: "all 0.4s ease",
+                          },
+                        }}
+                      />
+                      <Typography
+                        sx={{ fontSize: "0.7rem", color: strength.color, mt: 0.5, fontWeight: 600 }}
+                      >
+                        {strength.label}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+
+                {/* Confirm Password */}
+                <TextField
+                  id="signup-confirm-password"
+                  fullWidth
+                  label="Xác nhận mật khẩu"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    setConfirmPasswordError("");
+                  }}
+                  error={!!confirmPasswordError}
+                  helperText={confirmPasswordError}
                   slotProps={{
                     input: {
                       startAdornment: (
@@ -283,153 +337,93 @@ const SignUp = () => {
                       ),
                       endAdornment: (
                         <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setShowPassword(!showPassword)}
-                            edge="end"
-                            sx={{ color: "#94a3b8" }}
-                          >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
+                          {confirmPassword && password === confirmPassword ? (
+                            <CheckCircle sx={{ color: "#22c55e" }} />
+                          ) : (
+                            <IconButton
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              edge="end"
+                              sx={{ color: "#94a3b8" }}
+                            >
+                              {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          )}
                         </InputAdornment>
                       ),
                     }
                   }}
                   sx={styles.textField}
                 />
-                {password && (
-                  <Box sx={{ mt: 1 }}>
-                    <LinearProgress
-                      variant="determinate"
-                      value={strength.score}
-                      sx={{
-                        height: 4,
-                        borderRadius: 2,
-                        backgroundColor: "rgba(148,163,184,0.15)",
-                        "& .MuiLinearProgress-bar": {
-                          borderRadius: 2,
-                          backgroundColor: strength.color,
-                          transition: "all 0.4s ease",
-                        },
-                      }}
-                    />
-                    <Typography
-                      sx={{ fontSize: "0.7rem", color: strength.color, mt: 0.5, fontWeight: 600 }}
-                    >
-                      {strength.label}
-                    </Typography>
+
+                <Button
+                  id="signup-submit-btn"
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  disabled={loading}
+                  sx={styles.submitButton}
+                >
+                  {loading ? (
+                    <CircularProgress size={24} sx={{ color: "#fff" }} />
+                  ) : (
+                    "Tạo tài khoản"
+                  )}
+                </Button>
+              </Box>
+
+              <Box sx={styles.divider}>
+                <Box sx={styles.dividerLine} />
+                <Typography sx={styles.dividerText}>hoặc</Typography>
+                <Box sx={styles.dividerLine} />
+              </Box>
+
+              <Typography sx={styles.loginText}>
+                Đã có tài khoản?{" "}
+                <Link to="/login" style={{ textDecoration: "none" }}>
+                  <Box component="span" sx={styles.loginLink}>
+                    Đăng nhập
                   </Box>
-                )}
-              </Box>
-
-              {/* Confirm Password */}
-              <TextField
-                id="signup-confirm-password"
-                fullWidth
-                label="Xác nhận mật khẩu"
-                type={showConfirmPassword ? "text" : "password"}
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  setConfirmPasswordError("");
-                }}
-                error={!!confirmPasswordError}
-                helperText={confirmPasswordError}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Lock sx={{ color: "#94a3b8" }} />
-                      </InputAdornment>
-                    ),
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        {confirmPassword && password === confirmPassword ? (
-                          <CheckCircle sx={{ color: "#22c55e" }} />
-                        ) : (
-                          <IconButton
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            edge="end"
-                            sx={{ color: "#94a3b8" }}
-                          >
-                            {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        )}
-                      </InputAdornment>
-                    ),
-                  }
-                }}
-                sx={styles.textField}
-              />
-
-              <Button
-                id="signup-submit-btn"
-                type="submit"
-                fullWidth
-                variant="contained"
-                disabled={loading}
-                sx={styles.submitButton}
-              >
-                {loading ? (
-                  <CircularProgress size={24} sx={{ color: "#fff" }} />
-                ) : (
-                  "Tạo tài khoản"
-                )}
-              </Button>
+                </Link>
+              </Typography>
             </Box>
-
-            <Box sx={styles.divider}>
-              <Box sx={styles.dividerLine} />
-              <Typography sx={styles.dividerText}>hoặc</Typography>
-              <Box sx={styles.dividerLine} />
-            </Box>
-
-            <Typography sx={styles.loginText}>
-              Đã có tài khoản?{" "}
-              <Link to="/login" style={{ textDecoration: "none" }}>
-                <Box component="span" sx={styles.loginLink}>
-                  Đăng nhập
-                </Box>
-              </Link>
-            </Typography>
           </Box>
-        </Box>
 
-        {/* Right side - branding */}
-        <Box sx={styles.brandingSide}>
-          <Box sx={styles.brandingContent}>
-            <Box sx={styles.logoContainer}>
-              <SportsBaseball sx={styles.logoIcon} />
-            </Box>
-            <Typography sx={styles.brandTitle}>
-              Tham gia cộng đồng
-              <br />
-              <Box component="span" sx={styles.brandHighlight}>
-                Pickleball
+          {/* Right side - branding */}
+          <Box sx={styles.brandingSide}>
+            <Box sx={styles.brandingContent}>
+              <Box sx={styles.logoContainer}>
+                <SportsBaseball sx={styles.logoIcon} />
               </Box>
-            </Typography>
-            <Typography sx={styles.brandSubtitle}>
-              Hàng nghìn sản phẩm chất lượng đang chờ bạn khám phá
-            </Typography>
-
-            {/* Benefit cards */}
-            <Box sx={styles.benefitList}>
-              {[
-                { icon: "🚀", text: "Giao hàng siêu tốc toàn quốc" },
-                { icon: "💎", text: "Sản phẩm chính hãng 100%" },
-                { icon: "🔥", text: "Ưu đãi độc quyền cho thành viên" },
-                { icon: "🛡️", text: "Bảo hành & đổi trả dễ dàng" },
-              ].map((item, index) => (
-                <Box key={index} sx={styles.benefitCard(index)}>
-                  <Typography sx={{ fontSize: "1.3rem" }}>{item.icon}</Typography>
-                  <Typography sx={styles.benefitText}>{item.text}</Typography>
+              <Typography sx={styles.brandTitle}>
+                Tham gia cộng đồng
+                <br />
+                <Box component="span" sx={styles.brandHighlight}>
+                  Pickleball
                 </Box>
-              ))}
+              </Typography>
+              <Typography sx={styles.brandSubtitle}>
+                Hàng nghìn sản phẩm chất lượng đang chờ bạn khám phá
+              </Typography>
+
+              {/* Benefit cards */}
+              <Box sx={styles.benefitList}>
+                {[
+                  { icon: "🚀", text: "Giao hàng siêu tốc toàn quốc" },
+                  { icon: "💎", text: "Sản phẩm chính hãng 100%" },
+                  { icon: "🔥", text: "Ưu đãi độc quyền cho thành viên" },
+                  { icon: "🛡️", text: "Bảo hành & đổi trả dễ dàng" },
+                ].map((item, index) => (
+                  <Box key={index} sx={styles.benefitCard(index)}>
+                    <Typography sx={{ fontSize: "1.3rem" }}>{item.icon}</Typography>
+                    <Typography sx={styles.benefitText}>{item.text}</Typography>
+                  </Box>
+                ))}
+              </Box>
             </Box>
           </Box>
         </Box>
       </Box>
-    </Box>
+    </MainLayout>
   );
 };
 
@@ -460,30 +454,14 @@ const shimmer = {
 
 const styles = {
   pageWrapper: {
-    minHeight: "100vh",
+    minHeight: { xs: "auto", md: "calc(100vh - 78px)" },
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     background: "#f4f6f8",
     position: "relative",
     overflow: "hidden",
-    p: { xs: 2, md: 0 },
-  },
-  backButton: {
-    position: "absolute",
-    top: { xs: 16, md: 24 },
-    left: { xs: 16, md: 24 },
-    bgcolor: "rgba(255, 255, 255, 0.8)",
-    backdropFilter: "blur(8px)",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-    zIndex: 10,
-    color: "#002c4b",
-    transition: "all 0.3s ease",
-    "&:hover": {
-      bgcolor: "#ffffff",
-      transform: "translateY(-2px)",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-    },
+    p: { xs: 2, md: 5 },
   },
   bgOrbs: {
     position: "absolute",

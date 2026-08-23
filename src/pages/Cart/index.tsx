@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import {
   Box, Container, Typography, Button, IconButton,
   Divider, CircularProgress, Chip, TextField, Grid,
-  Checkbox, Paper,
+  Checkbox, Paper, Alert,
 } from "@mui/material";
+import toast from "react-hot-toast";
 import {
   Minus, Plus, Trash2, ArrowLeft, Tag, Truck,
   Shield, ChevronRight, PackageCheck, CreditCard, ShoppingCart,
@@ -141,6 +142,9 @@ const Cart = () => {
   const { items, loading, actionLoading, error: cartError } = useSelector((s: RootState) => s.cart);
   const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
 
+  const validItems = items.filter((item) => item.productId != null);
+  const hasInvalidItems = items.some((item) => !item.productId);
+
   const [couponCode, setCouponCode] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponResult, setCouponResult] = useState<CalculateDiscountResult | null>(null);
@@ -155,7 +159,7 @@ const Cart = () => {
 
   // Select all items automatically when cart items load
   useEffect(() => {
-    setSelectedIds(items.map(i => i.productId?._id).filter(Boolean) as string[]);
+    setSelectedIds(validItems.map((i) => i.productId?._id).filter(Boolean) as string[]);
   }, [items]);
 
   // Reset coupon calculation when items list changes
@@ -189,12 +193,21 @@ const Cart = () => {
     dispatch(clearCart());
   };
 
+  const handleCleanInvalid = async () => {
+    try {
+      await dispatch(fetchCart()).unwrap();
+      toast.success("Đã làm sạch các sản phẩm ngừng kinh doanh khỏi giỏ hàng");
+    } catch {
+      toast.error("Không thể làm sạch giỏ hàng");
+    }
+  };
+
   const toggleSelect = (id: string) =>
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
   const toggleAll = () =>
-    setSelectedIds(prev =>
-      prev.length === items.length ? [] : items.map(i => i.productId?._id).filter(Boolean) as string[]
+    setSelectedIds((prev) =>
+      prev.length === validItems.length ? [] : (validItems.map((i) => i.productId?._id).filter(Boolean) as string[])
     );
 
   const handleApplyCoupon = async () => {
@@ -206,7 +219,7 @@ const Cart = () => {
       setCouponLoading(true);
       setCouponError(null);
 
-      const selectedProductIds = selectedItems.map(item => item.productId?._id).filter(Boolean);
+      const selectedProductIds = selectedItems.map((item) => item.productId?._id).filter(Boolean);
       const selectedCategoryIds = Array.from(
         new Set(
           selectedItems
@@ -217,7 +230,7 @@ const Cart = () => {
               }
               return acc;
             }, [])
-            .map(cat => (cat && typeof cat === "object" ? (cat as { _id: string })._id : String(cat)))
+            .map((cat) => (cat && typeof cat === "object" ? (cat as { _id: string })._id : String(cat)))
             .filter(Boolean)
         )
       ) as string[];
@@ -238,7 +251,7 @@ const Cart = () => {
     }
   };
 
-  const selectedItems = items.filter(i => selectedIds.includes(i.productId?._id));
+  const selectedItems = validItems.filter((i) => selectedIds.includes(i.productId?._id));
   const subtotal = selectedItems.reduce((s, i) => s + (i.productId?.salePrice || i.productId?.price || 0) * i.qty, 0);
   const discount = couponResult?.discountAmount || 0;
   const shipping = subtotal >= 2000000 ? 0 : subtotal > 0 ? 30000 : 0;
@@ -355,7 +368,7 @@ const Cart = () => {
                   border: "1px solid rgba(132,204,22,0.25)"
                 }}
               >
-                {items.length} sản phẩm
+                {validItems.length} sản phẩm
               </Typography>
             </Typography>
           </Container>
@@ -365,6 +378,27 @@ const Cart = () => {
           <Grid container spacing={4}>
             {/* ═══ LEFT COLUMN: Cart Items ═══ */}
             <Grid size={{ xs: 12, md: 8 }}>
+              {/* Alert Cảnh báo khi có sản phẩm bị xóa / ngừng kinh doanh */}
+              {hasInvalidItems && (
+                <Alert
+                  severity="warning"
+                  sx={{ mb: 3, borderRadius: 3, fontWeight: 600, alignItems: "center" }}
+                  action={
+                    <Button
+                      color="warning"
+                      size="small"
+                      variant="contained"
+                      onClick={handleCleanInvalid}
+                      sx={{ fontWeight: 800, textTransform: "none", borderRadius: 2 }}
+                    >
+                      Làm sạch giỏ hàng
+                    </Button>
+                  }
+                >
+                  Có sản phẩm trong giỏ đã ngừng kinh doanh
+                </Alert>
+              )}
+
               {/* Select All and Actions Bar */}
               <Paper
                 elevation={0}
@@ -383,8 +417,8 @@ const Cart = () => {
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   <Checkbox
                     size="medium"
-                    checked={selectedIds.length === items.length}
-                    indeterminate={selectedIds.length > 0 && selectedIds.length < items.length}
+                    checked={selectedIds.length === validItems.length && validItems.length > 0}
+                    indeterminate={selectedIds.length > 0 && selectedIds.length < validItems.length}
                     onChange={toggleAll}
                     sx={{
                       mr: 1,
@@ -393,7 +427,7 @@ const Cart = () => {
                     }}
                   />
                   <Typography sx={{ fontWeight: 800, color: T.text, fontSize: "0.95rem" }}>
-                    Chọn tất cả ({items.length})
+                    Chọn tất cả ({validItems.length})
                   </Typography>
                 </Box>
                 <Button
@@ -421,14 +455,14 @@ const Cart = () => {
 
               {/* Items Cards List */}
               <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                {items.map((item, idx) => {
+                {validItems.map((item, idx) => {
                   const p = item.productId;
                   if (!p) return null;
                   const price = p.salePrice || p.price;
                   const lineTotal = price * item.qty;
                   const hasSale = p.salePrice && p.salePrice < p.price;
                   const checked = selectedIds.includes(p._id);
-                  const isLast = idx === items.length - 1;
+                  const isLast = idx === validItems.length - 1;
 
                   return (
                     <Paper

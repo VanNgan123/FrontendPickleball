@@ -34,6 +34,7 @@ const PaymentResult = lazy(() => import("../pages/PaymentResult"));
 const OrderSuccess = lazy(() => import("../pages/OrderSuccess"));
 const Profile = lazy(() => import("../pages/Profile"));
 const Orders = lazy(() => import("../pages/Orders"));
+const Notifications = lazy(() => import("../pages/Notifications"));
 const SearchResults = lazy(() => import("../pages/SearchResults"));
 const About = lazy(() => import("../pages/About"));
 const News = lazy(() => import("../pages/News"));
@@ -75,6 +76,7 @@ const AppRouters = () => {
           <Route path="/order-success/:id" element={<OrderSuccess />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/orders" element={<Orders />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/about" element={<About />} />
           <Route path="/news" element={<News />} />
