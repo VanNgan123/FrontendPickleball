@@ -1,8 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Paper, Rating } from "@mui/material";
+import { Box, Typography, Paper } from "@mui/material";
 import type { Product } from "../../types";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import ProductImage from "../ProductImage";
 
 interface CompactProductCardProps {
   product: Product;
@@ -15,13 +14,16 @@ const CompactProductCard = ({ product }: CompactProductCardProps) => {
     ? Math.round(((product.price - product.salePrice) / product.price) * 100)
     : 0;
 
-  const getImgUrl = (img: string) =>
-    img?.startsWith("http") ? img : `${API_URL}${img?.startsWith("/") ? "" : "/"}${img}`;
-
   return (
     <Paper
       elevation={0}
+      role="link"
+      tabIndex={0}
+      aria-label={`Xem sản phẩm ${product.name}`}
       onClick={() => navigate(`/product/${product._id}`)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") navigate(`/product/${product._id}`);
+      }}
       sx={{
         bgcolor: "#fff", border: "1px solid #eee", borderRadius: 2,
         overflow: "hidden", cursor: "pointer",
@@ -44,9 +46,8 @@ const CompactProductCard = ({ product }: CompactProductCardProps) => {
             -{discount}%
           </Box>
         )}
-        <Box
-          component="img"
-          src={product.image?.[0] ? getImgUrl(product.image[0]) : "/placeholder.png"}
+        <ProductImage
+          src={product.image?.[0]}
           alt={product.name}
           sx={{
             position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
@@ -69,19 +70,17 @@ const CompactProductCard = ({ product }: CompactProductCardProps) => {
           {product.name}
         </Typography>
 
-        {/* Rating */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.5 }}>
-          <Rating value={0} readOnly size="small" sx={{ fontSize: "0.85rem", color: "#f59e0b" }} />
-          <Typography variant="caption" sx={{ color: "#888" }}>(0)</Typography>
-        </Box>
-
         {/* Price */}
         <Box sx={{ mt: "auto" }}>
           <Typography
             component="span"
-            sx={{ fontWeight: 700, color: "#E60023", fontSize: "0.95rem" }}
+            sx={{
+              fontWeight: 800,
+              color: product.salePrice ? "#DC2626" : "#0F766E",
+              fontSize: "0.95rem",
+            }}
           >
-            {(product.salePrice || product.price).toLocaleString("vi-VN")}d
+            {(product.salePrice || product.price).toLocaleString("vi-VN")}đ
           </Typography>
           {product.salePrice && product.salePrice < product.price && (
             <Typography
@@ -91,7 +90,7 @@ const CompactProductCard = ({ product }: CompactProductCardProps) => {
                 fontSize: "0.78rem", ml: 1,
               }}
             >
-              {product.price.toLocaleString("vi-VN")}d
+              {product.price.toLocaleString("vi-VN")}đ
             </Typography>
           )}
         </Box>

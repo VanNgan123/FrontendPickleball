@@ -5,7 +5,7 @@ import type { RootState } from "../store/store";
 
 const withAuthAdmin = <P extends object>(
   WrappedComponent: ComponentType<P>,
-  allowedRoles: string[] = ["admin", "manager", "support"]
+  allowedRoles: string[] = ["admin", "staff"]
 ) => {
   const AuthAdminComponent = (props: P) => {
     const { isAuthenticated, user } = useSelector(

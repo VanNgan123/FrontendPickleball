@@ -1,21 +1,23 @@
 import { Box, Container, Typography, Button, Paper } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import {
-  Award, Users, Target, Heart, ShoppingBag, Truck, Shield,
-  MapPin, Phone, Mail, Clock, ChevronRight, Star, Zap, CheckCircle2,
+  Award, Heart, ShoppingBag, Truck, Shield,
+  Clock, ChevronRight, Zap, CheckCircle2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../../layout/MainLayout/MainLayout";
 import heroImg from "../../assets/about/hero.png";
 import storyImg from "../../assets/about/story.png";
 import storeImg from "../../assets/about/store.png";
+import { FREE_SHIPPING_THRESHOLD, RETURN_WINDOW_DAYS, formatCurrency } from "../../config/commerce";
+import { openAgentChat } from "../../utils/chatStorage";
 
 /* ── Stats data ── */
 const stats = [
-  { value: "500+", label: "Sản phẩm chính hãng", icon: ShoppingBag, color: "#84CC16" },
-  { value: "10.000+", label: "Khách hàng tin tưởng", icon: Users, color: "#0F766E" },
-  { value: "50+", label: "Thương hiệu hàng đầu", icon: Award, color: "#3B82F6" },
-  { value: "24/7", label: "Hỗ trợ tư vấn", icon: Clock, color: "#F59E0B" },
+  { value: "300+", label: "Sản phẩm Pickleball", icon: ShoppingBag, color: "#84CC16" },
+  { value: "Toàn quốc", label: "Phạm vi giao hàng", icon: Truck, color: "#0F766E" },
+  { value: "COD", label: "Thanh toán khi nhận", icon: Award, color: "#3B82F6" },
+  { value: "Online", label: "Trợ lý tư vấn", icon: Clock, color: "#F59E0B" },
 ];
 
 /* ── Timeline data ── */
@@ -28,10 +30,10 @@ const timeline = [
 
 /* ── Commitments data ── */
 const commitments = [
-  { icon: Shield, title: "Chính hãng 100%", desc: "Mọi sản phẩm đều được nhập khẩu trực tiếp, có chứng nhận và bảo hành đầy đủ từ nhà sản xuất.", color: "#0F766E", bg: "linear-gradient(135deg, rgba(15,118,110,0.08) 0%, rgba(132,204,22,0.06) 100%)" },
-  { icon: Truck, title: "Giao hàng toàn quốc", desc: "Miễn phí vận chuyển cho đơn hàng từ 1 triệu đồng. Giao nhanh 2h trong nội thành HCM.", color: "#3B82F6", bg: "linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(147,197,253,0.06) 100%)" },
+  { icon: Shield, title: "Thông tin minh bạch", desc: "Thông tin giá, tồn kho, mô tả và chính sách được hiển thị rõ trước khi khách hàng đặt mua.", color: "#0F766E", bg: "linear-gradient(135deg, rgba(15,118,110,0.08) 0%, rgba(132,204,22,0.06) 100%)" },
+  { icon: Truck, title: "Giao hàng toàn quốc", desc: `Miễn phí vận chuyển cho đơn hàng từ ${formatCurrency(FREE_SHIPPING_THRESHOLD)}. Phí ship được hiển thị trước khi đặt hàng.`, color: "#3B82F6", bg: "linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(147,197,253,0.06) 100%)" },
   { icon: Heart, title: "Phục vụ tận tâm", desc: "Đội ngũ chuyên gia am hiểu Pickleball, sẵn sàng tư vấn giúp bạn chọn đúng sản phẩm phù hợp.", color: "#E60023", bg: "linear-gradient(135deg, rgba(230,0,35,0.06) 0%, rgba(251,146,60,0.04) 100%)" },
-  { icon: Zap, title: "Đổi trả dễ dàng", desc: "Chính sách đổi trả trong 30 ngày, hoàn tiền nếu phát hiện hàng giả. Quyền lợi khách hàng là ưu tiên số 1.", color: "#F59E0B", bg: "linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(252,211,77,0.04) 100%)" },
+  { icon: Zap, title: "Đổi trả rõ ràng", desc: `Tiếp nhận yêu cầu đổi trả trong ${RETURN_WINDOW_DAYS} ngày theo điều kiện được công bố trên website.`, color: "#F59E0B", bg: "linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(252,211,77,0.04) 100%)" },
 ];
 
 const About = () => {
@@ -427,13 +429,13 @@ const About = () => {
                 </Box>
               </Typography>
               <Typography sx={{ color: "rgba(255,255,255,0.7)", fontSize: 15, lineHeight: 1.75, mb: 4 }}>
-                Ghé thăm cửa hàng hoặc liên hệ qua các kênh bên dưới để được tư vấn miễn phí bởi đội ngũ chuyên gia.
+                Mở trợ lý trực tuyến để được tư vấn sản phẩm, kiểm tra giỏ hàng, coupon và trạng thái đơn hàng.
               </Typography>
 
               <Button
                 variant="contained"
                 endIcon={<ChevronRight size={18} />}
-                onClick={() => navigate("/products")}
+                onClick={openAgentChat}
                 sx={{
                   bgcolor: "#84CC16",
                   color: "#0F172A",
@@ -446,19 +448,17 @@ const About = () => {
                   textTransform: "none",
                 }}
               >
-                Mua sắm ngay
+                Mở trợ lý tư vấn
               </Button>
             </Grid>
 
             <Grid size={{ xs: 12, md: 7 }}>
               <Grid container spacing={2}>
                 {[
-                  { icon: MapPin, label: "Cửa hàng", value: "123 Đường Bạch Đằng, Quận 1, TP.HCM", color: "#3B82F6" },
-                  { icon: Phone, label: "Hotline", value: "0123.456.789", color: "#22C55E" },
-                  { icon: Mail, label: "Email", value: "info@pickleballbachdang.vn", color: "#F59E0B" },
-                  { icon: Clock, label: "Giờ mở cửa", value: "8:00 – 21:00 (Thứ 2 – Chủ nhật)", color: "#8B5CF6" },
-                  { icon: Star, label: "Đánh giá", value: "4.9/5 ★ (1.200+ đánh giá)", color: "#EF4444" },
-                  { icon: Target, label: "Fanpage", value: "fb.com/pickleballbachdang", color: "#0EA5E9" },
+                  { icon: ShoppingBag, label: "Sản phẩm", value: "Danh mục Pickleball đa dạng", color: "#3B82F6" },
+                  { icon: Truck, label: "Vận chuyển", value: `Miễn phí từ ${formatCurrency(FREE_SHIPPING_THRESHOLD)}`, color: "#22C55E" },
+                  { icon: Shield, label: "Đổi trả", value: `${RETURN_WINDOW_DAYS} ngày theo chính sách`, color: "#F59E0B" },
+                  { icon: Clock, label: "Theo dõi", value: "Cập nhật trạng thái đơn hàng trực tuyến", color: "#8B5CF6" },
                 ].map((item) => {
                   const Icon = item.icon;
                   return (

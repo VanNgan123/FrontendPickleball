@@ -1,105 +1,33 @@
-import { Box, Container, Typography, Button, Paper } from "@mui/material";
-import { Headphones, ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Box, Button, Container, Link as MuiLink, Paper, Stack, Typography } from "@mui/material";
+import { Headphones, Mail, MessageCircle, Phone } from "lucide-react";
+import { Link as RouterLink } from "react-router-dom";
 import MainLayout from "../../layout/MainLayout/MainLayout";
+import { SUPPORT_EMAIL, SUPPORT_PHONE, ZALO_URL } from "../../config/commerce";
+import { openAgentChat } from "../../utils/chatStorage";
 
-const Support = () => {
-  const navigate = useNavigate();
-
-  return (
-    <MainLayout>
-      <Container maxWidth="md" sx={{ py: { xs: 6, md: 10 }, textAlign: "center" }}>
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 4, md: 6 },
-            borderRadius: 4,
-            border: "1.5px solid #e2e8f0",
-            background: "linear-gradient(135deg, #fef3c7 0%, #fffbeb 50%, #fef9c3 100%)",
-            position: "relative",
-            overflow: "hidden",
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              top: -60,
-              right: -60,
-              width: 200,
-              height: 200,
-              borderRadius: "50%",
-              bgcolor: "rgba(245,158,11,0.08)",
-            },
-          }}
-        >
-          <Box
-            sx={{
-              width: 88,
-              height: 88,
-              borderRadius: "50%",
-              bgcolor: "#F59E0B",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              mx: "auto",
-              mb: 3,
-              boxShadow: "0 8px 24px rgba(245,158,11,0.3)",
-            }}
-          >
-            <Headphones size={40} color="white" />
-          </Box>
-
-          <Typography
-            variant="h4"
-            sx={{
-              fontWeight: 900,
-              color: "#0F172A",
-              mb: 1.5,
-              fontSize: { xs: "1.5rem", md: "2rem" },
-            }}
-          >
-            Liên hệ & Trợ giúp
-          </Typography>
-
-          <Typography
-            variant="body1"
-            sx={{ color: "#64748b", mb: 1, fontSize: { xs: 15, md: 17 }, maxWidth: 480, mx: "auto" }}
-          >
-            Trang hỗ trợ khách hàng đang được hoàn thiện. Bạn có thể liên hệ qua hotline hoặc chat Zalo để được tư vấn ngay!
-          </Typography>
-
-          <Typography
-            variant="body2"
-            sx={{
-              color: "#D97706",
-              fontWeight: 700,
-              mb: 4,
-              fontSize: 14,
-            }}
-          >
-            📞 Hotline: 0123.456.789
-          </Typography>
-
-          <Button
-            variant="contained"
-            startIcon={<ArrowLeft size={18} />}
-            onClick={() => navigate("/")}
-            sx={{
-              bgcolor: "#F59E0B",
-              "&:hover": { bgcolor: "#D97706" },
-              fontWeight: 700,
-              px: 4,
-              py: 1.2,
-              borderRadius: 2,
-              textTransform: "none",
-              fontSize: "0.95rem",
-              color: "#1a1a1a",
-            }}
-          >
-            Về trang chủ
-          </Button>
-        </Paper>
-      </Container>
-    </MainLayout>
-  );
-};
+const Support = () => (
+  <MainLayout>
+    <Container maxWidth="md" sx={{ py: { xs: 5, md: 9 } }}>
+      <Paper elevation={0} sx={{ p: { xs: 3, md: 6 }, borderRadius: 4, border: "1px solid #dbe5e1", bgcolor: "#f0fdfa" }}>
+        <Box sx={{ width: 76, height: 76, borderRadius: "50%", bgcolor: "#0F766E", display: "grid", placeItems: "center", mb: 3 }}>
+          <Headphones size={34} color="white" />
+        </Box>
+        <Typography component="h1" variant="h4" sx={{ fontWeight: 900, mb: 1.5 }}>Trung tâm trợ giúp</Typography>
+        <Typography color="text.secondary" sx={{ lineHeight: 1.8, mb: 3 }}>
+          Hãy gửi câu hỏi về sản phẩm, giỏ hàng hoặc đơn hàng. Trợ lý trực tuyến có thể kiểm tra dữ liệu hiện tại và hướng dẫn bước tiếp theo.
+        </Typography>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} flexWrap="wrap" useFlexGap>
+          <Button variant="contained" startIcon={<MessageCircle size={18} />} onClick={openAgentChat}>Mở trợ lý trực tuyến</Button>
+          {ZALO_URL && <Button component="a" href={ZALO_URL} target="_blank" rel="noopener noreferrer" variant="outlined">Chat Zalo</Button>}
+          {SUPPORT_PHONE && <Button component="a" href={`tel:${SUPPORT_PHONE.replace(/\s/g, "")}`} startIcon={<Phone size={18} />} variant="outlined">{SUPPORT_PHONE}</Button>}
+          {SUPPORT_EMAIL && <Button component="a" href={`mailto:${SUPPORT_EMAIL}`} startIcon={<Mail size={18} />} variant="outlined">Email hỗ trợ</Button>}
+        </Stack>
+        <Typography variant="body2" sx={{ mt: 3, color: "text.secondary" }}>
+          Xem thêm <MuiLink component={RouterLink} to="/policies/returns">chính sách đổi trả</MuiLink> và <MuiLink component={RouterLink} to="/policies/shipping">chính sách vận chuyển</MuiLink>.
+        </Typography>
+      </Paper>
+    </Container>
+  </MainLayout>
+);
 
 export default Support;

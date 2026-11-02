@@ -24,6 +24,11 @@ export interface ProfileResponse {
   data: UserProfile;
 }
 
+export interface UsersResponse {
+  status: string;
+  data: UserProfile[];
+}
+
 const userService = {
   // Lay profile
   getProfile: async (): Promise<ProfileResponse> => {
@@ -45,6 +50,28 @@ const userService = {
     formData.append("avatar", file);
     const response = await axiosPickleball.put("/api/users/avatar", formData, {
       headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response as unknown as ProfileResponse;
+  },
+
+  getAllUsers: async (): Promise<UsersResponse> => {
+    const response = await axiosPickleball.get("/api/users/admin/all");
+    return response as unknown as UsersResponse;
+  },
+
+  toggleUserActive: async (userId: string): Promise<ProfileResponse> => {
+    const response = await axiosPickleball.put(
+      `/api/users/admin/${userId}/toggle-active`
+    );
+    return response as unknown as ProfileResponse;
+  },
+
+  updateUserRole: async (
+    userId: string,
+    role: "customer" | "staff" | "admin"
+  ): Promise<ProfileResponse> => {
+    const response = await axiosPickleball.put(`/api/users/admin/${userId}/role`, {
+      role,
     });
     return response as unknown as ProfileResponse;
   },

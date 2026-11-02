@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -49,10 +49,9 @@ const getAvatarUrl = (avatarPath?: string) => {
 };
 
 const ROLE_MAP: Record<string, { label: string; color: string; bg: string }> = {
-  customer: { label: "Khach hang", color: "#3b82f6", bg: "rgba(59,130,246,0.1)" },
-  admin: { label: "Quan tri vien", color: "#E60023", bg: "rgba(230,0,35,0.1)" },
-  manager: { label: "Quan ly", color: "#8b5cf6", bg: "rgba(139,92,246,0.1)" },
-  support: { label: "Ho tro", color: "#ea580c", bg: "rgba(234,88,12,0.1)" },
+  customer: { label: "Khách hàng", color: "#3b82f6", bg: "rgba(59,130,246,0.1)" },
+  staff: { label: "Nhân viên", color: "#10b981", bg: "rgba(16,185,129,0.1)" },
+  admin: { label: "Quản trị viên", color: "#E60023", bg: "rgba(230,0,35,0.1)" },
 };
 
 // =============================================
@@ -126,15 +125,7 @@ const Profile = () => {
   const [form, setForm] = useState({ name: "", phone: "" });
   const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string }>({});
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-    loadProfile();
-  }, [isAuthenticated]);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       setPageLoading(true);
       const res = await userService.getProfile();
@@ -146,7 +137,15 @@ const Profile = () => {
     } finally {
       setPageLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    loadProfile();
+  }, [isAuthenticated, loadProfile, navigate]);
 
   // Avatar upload
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

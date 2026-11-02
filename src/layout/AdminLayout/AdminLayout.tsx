@@ -25,6 +25,8 @@ import {
   X,
   Bell,
   ExternalLink,
+  MessageSquareText,
+  UsersRound,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "../../store/store";
@@ -71,6 +73,18 @@ const NAV_ITEMS = [
     label: "Đánh giá",
     icon: <Star size={20} />,
     path: "/admin/reviews",
+  },
+  {
+    key: "users",
+    label: "Người dùng",
+    icon: <UsersRound size={20} />,
+    path: "/admin/users",
+  },
+  {
+    key: "chatbot",
+    label: "Chatbot",
+    icon: <MessageSquareText size={20} />,
+    path: "/admin/chatbot",
   },
 ];
 
@@ -195,7 +209,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
           )}
 
           <List dense disablePadding>
-            {NAV_ITEMS.map((item) => {
+            {NAV_ITEMS.filter((item) => item.key !== "users" || user?.role === "admin").map((item) => {
               const active = isActive(item.path);
               return (
                 <Tooltip key={item.key} title={collapsed ? item.label : ""} placement="right">

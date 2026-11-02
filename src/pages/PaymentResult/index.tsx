@@ -60,8 +60,9 @@ const PaymentResult = () => {
 
           if (order.paymentStatus === "Paid") {
             setResultState("paid");
+            const providerName = "ZaloPay";
             setMessage(
-              "Đơn hàng đã được VNPay xác nhận thanh toán."
+              `Đơn hàng đã được ${providerName} xác nhận thanh toán thành công.`
             );
             return;
           }
@@ -83,7 +84,7 @@ const PaymentResult = () => {
         if (!cancelled) {
           setResultState("pending");
           setMessage(
-            "VNPay chưa xác nhận giao dịch. Bạn có thể kiểm tra lại trong danh sách đơn hàng."
+            "Cổng thanh toán chưa xác nhận giao dịch. Bạn có thể kiểm tra lại trong danh sách đơn hàng."
           );
         }
       } catch {
@@ -126,7 +127,7 @@ const PaymentResult = () => {
       case "paid":
         return "Thanh toán thành công";
       case "pending":
-        return "Đang chờ VNPay xác nhận";
+        return "Đang chờ xác nhận giao dịch";
       default:
         return "Thanh toán chưa thành công";
     }

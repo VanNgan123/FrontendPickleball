@@ -5,9 +5,9 @@ import { Autoplay, EffectFade } from "swiper/modules";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import banner1 from "../../assets/banner/banner1.jpg";
+import banner1 from "../../assets/banner/banner1.webp";
 import banner2 from "../../assets/banner/banner2.jpg";
-import banner3 from "../../assets/banner/banner3.jpg";
+import banner3 from "../../assets/banner/banner3.webp";
 import banner4 from "../../assets/banner/banner4.jpg";
 import SidebarCategory from "../SlideBar";
 

@@ -16,12 +16,15 @@ import {
   VisibilityOff,
   Email,
   Lock,
-  SportsBaseball,
+  SportsTennis,
+  VerifiedOutlined,
+  SupportAgentOutlined,
 } from "@mui/icons-material";
 import { loginUser, clearAuthError } from "../../store/slices/authSlice";
 import type { AppDispatch, RootState } from "../../store/store";
 import toast from "react-hot-toast";
 import MainLayout from "../../layout/MainLayout/MainLayout";
+import logoImage from "../../assets/logo/image.webp";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -101,33 +104,31 @@ const Login = () => {
         <Box sx={styles.brandingSide}>
           <Box sx={styles.brandingContent}>
             <Box sx={styles.logoContainer}>
-              <SportsBaseball sx={styles.logoIcon} />
+              <Box component="img" src={logoImage} alt="Pickleball Bạch Đằng" sx={styles.brandLogo} />
             </Box>
             <Typography sx={styles.brandTitle}>
               Pickleball
               <Box component="span" sx={styles.brandHighlight}>
-                Store
+                Bạch Đằng
               </Box>
             </Typography>
             <Typography sx={styles.brandSubtitle}>
-              Trang bị tốt nhất cho trận đấu hoàn hảo
+              Dụng cụ chọn lọc, tư vấn đúng nhu cầu
             </Typography>
 
-            {/* Floating 3D cards */}
+            {/* Brand benefits */}
             <Box sx={styles.floatingCards}>
               <Box sx={styles.floatCard1}>
-                <Typography sx={styles.floatCardEmoji}>🏓</Typography>
-                <Typography sx={styles.floatCardText}>
-                  Vợt cao cấp
-                </Typography>
+                <SportsTennis sx={styles.featureIcon} />
+                <Typography sx={styles.floatCardText}>Vợt chọn lọc</Typography>
               </Box>
               <Box sx={styles.floatCard2}>
-                <Typography sx={styles.floatCardEmoji}>👟</Typography>
-                <Typography sx={styles.floatCardText}>Giày chuyên dụng</Typography>
+                <VerifiedOutlined sx={styles.featureIcon} />
+                <Typography sx={styles.floatCardText}>Nguồn gốc rõ ràng</Typography>
               </Box>
               <Box sx={styles.floatCard3}>
-                <Typography sx={styles.floatCardEmoji}>🎾</Typography>
-                <Typography sx={styles.floatCardText}>Phụ kiện chính hãng</Typography>
+                <SupportAgentOutlined sx={styles.featureIcon} />
+                <Typography sx={styles.floatCardText}>Tư vấn tận tâm</Typography>
               </Box>
             </Box>
           </Box>
@@ -291,7 +292,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "#f4f6f8",
+    background: "#F8FAFC",
     position: "relative",
     overflow: "hidden",
     p: { xs: 2, md: 5 },
@@ -307,7 +308,7 @@ const styles = {
     width: "400px",
     height: "400px",
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(230, 0, 35, 0.1) 0%, transparent 70%)",
+    background: "radial-gradient(circle, rgba(132, 204, 22, 0.16) 0%, transparent 70%)",
     top: "-100px",
     right: "-100px",
     animation: "orbFloat 8s ease-in-out infinite",
@@ -318,7 +319,7 @@ const styles = {
     width: "300px",
     height: "300px",
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(8, 34, 47, 0.08) 0%, transparent 70%)",
+    background: "radial-gradient(circle, rgba(15, 118, 110, 0.12) 0%, transparent 70%)",
     bottom: "-50px",
     left: "-50px",
     animation: "orbFloat 10s ease-in-out infinite reverse",
@@ -329,7 +330,7 @@ const styles = {
     width: "200px",
     height: "200px",
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(230, 0, 35, 0.08) 0%, transparent 70%)",
+    background: "radial-gradient(circle, rgba(15, 23, 42, 0.08) 0%, transparent 70%)",
     top: "50%",
     left: "50%",
     animation: "orbFloat 12s ease-in-out infinite",
@@ -350,7 +351,7 @@ const styles = {
   },
   brandingSide: {
     flex: "1 1 45%",
-    background: "linear-gradient(135deg, #0d3b56 0%, #005691 100%)",
+    background: "linear-gradient(145deg, #0F172A 0%, #0B3B46 48%, #0F766E 100%)",
     display: { xs: "none", md: "flex" },
     alignItems: "center",
     justifyContent: "center",
@@ -380,8 +381,7 @@ const styles = {
     width: "80px",
     height: "80px",
     borderRadius: "24px",
-    background: "rgba(255,255,255,0.15)",
-    backdropFilter: "blur(20px)",
+    background: "rgba(255,255,255,0.94)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -389,35 +389,37 @@ const styles = {
     mb: 4,
     boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
     border: "1px solid rgba(255,255,255,0.25)",
-    transform: "rotate(-5deg)",
+    transform: "none",
     transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
     "&:hover": {
-      transform: "rotate(0deg) scale(1.08)",
-      background: "rgba(255,255,255,0.2)",
+      transform: "scale(1.05)",
+      background: "#fff",
     },
   },
-  logoIcon: {
-    fontSize: "40px",
-    color: "#fff",
+  brandLogo: {
+    width: "76%",
+    height: "76%",
+    objectFit: "contain",
   },
   brandTitle: {
-    fontFamily: '"Outfit", "Inter", sans-serif',
-    fontSize: "2.6rem",
-    fontWeight: 800,
+    fontFamily: "inherit",
+    fontSize: "2.45rem",
+    fontWeight: 900,
     color: "#fff",
     letterSpacing: "-0.03em",
     lineHeight: 1.2,
     mb: 1.5,
   },
   brandHighlight: {
-    background: "linear-gradient(90deg, #fbbf24, #f59e0b)",
+    display: "block",
+    background: "linear-gradient(90deg, #BEF264, #84CC16)",
     backgroundClip: "text",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
-    ml: 1,
+    mt: 0.25,
   },
   brandSubtitle: {
-    fontFamily: '"Inter", sans-serif',
+    fontFamily: "inherit",
     fontSize: "1.05rem",
     color: "rgba(255,255,255,0.9)",
     mb: 5,
@@ -467,12 +469,13 @@ const styles = {
     animation: "float3 6s ease-in-out infinite",
     boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
   },
-  floatCardEmoji: {
-    fontSize: "1.5rem",
+  featureIcon: {
+    fontSize: "1.45rem",
+    color: "#BEF264",
     mb: 0.5,
   },
   floatCardText: {
-    fontFamily: '"Inter", sans-serif',
+    fontFamily: "inherit",
     fontSize: "0.8rem",
     color: "#fff",
     fontWeight: 600,
@@ -528,13 +531,13 @@ const styles = {
         borderColor: "#cbd5e1",
       },
       "&.Mui-focused fieldset": {
-        borderColor: "#E60023",
-        boxShadow: "0 0 0 3px rgba(230, 0, 35, 0.1)",
+        borderColor: "#0F766E",
+        boxShadow: "0 0 0 3px rgba(15, 118, 110, 0.12)",
       },
     },
     "& .MuiInputLabel-root": {
       color: "#64748b",
-      "&.Mui-focused": { color: "#E60023" },
+      "&.Mui-focused": { color: "#0F766E" },
     },
     "& .MuiFormHelperText-root": {
       fontSize: "0.8rem",
@@ -547,20 +550,20 @@ const styles = {
     fontSize: "1rem",
     fontWeight: 700,
     textTransform: "none",
-    background: "linear-gradient(135deg, #E60023 0%, #ba0000 100%)",
-    boxShadow: "0 4px 15px rgba(230, 0, 35, 0.3)",
+    background: "linear-gradient(135deg, #0F766E 0%, #0D5F59 100%)",
+    boxShadow: "0 8px 20px rgba(15, 118, 110, 0.24)",
     transition: "all 0.3s ease",
     mt: 1,
     "&:hover": {
-      background: "linear-gradient(135deg, #ff1a3c 0%, #E60023 100%)",
-      boxShadow: "0 6px 25px rgba(230, 0, 35, 0.45)",
+      background: "linear-gradient(135deg, #118A80 0%, #0F766E 100%)",
+      boxShadow: "0 10px 28px rgba(15, 118, 110, 0.32)",
       transform: "translateY(-2px)",
     },
     "&:active": {
       transform: "translateY(0)",
     },
     "&.Mui-disabled": {
-      background: "rgba(230, 0, 35, 0.3)",
+      background: "rgba(15, 118, 110, 0.35)",
       color: "rgba(255,255,255,0.8)",
     },
     ...shimmer,
@@ -587,12 +590,12 @@ const styles = {
     fontSize: "0.9rem",
   },
   signUpLink: {
-    color: "#E60023",
+    color: "#0F766E",
     fontWeight: 700,
     cursor: "pointer",
     transition: "all 0.2s ease",
     "&:hover": {
-      color: "#ba0000",
+      color: "#0D5F59",
       textDecoration: "underline",
     },
   },

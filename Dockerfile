@@ -5,6 +5,9 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
+ARG VITE_API_URL=""
+ARG VITE_AGENT_API_URL="http://localhost:8001"
+
 # Copy package files
 COPY package.json package-lock.json ./
 
@@ -17,7 +20,8 @@ COPY . .
 # Set the API URL for production build
 # In Docker Compose, the frontend Nginx will proxy /api to the backend,
 # so the API URL is relative (empty or just the origin)
-ENV VITE_API_URL=""
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_AGENT_API_URL=$VITE_AGENT_API_URL
 
 # Build the application
 RUN npm run build

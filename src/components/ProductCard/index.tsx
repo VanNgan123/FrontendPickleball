@@ -1,35 +1,27 @@
-import { Box, Typography, Paper, Chip } from "@mui/material";
+import { useState } from "react";
+import { Box, Typography, Paper, Chip, CircularProgress, IconButton, Tooltip } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { Heart } from "lucide-react";
+import { useSelector } from "react-redux";
+import toast from "react-hot-toast";
 import type { Product } from "../../types";
+import type { RootState } from "../../store/store";
+import wishlistService from "../../services/wishlistService";
+import ProductImage from "../ProductImage";
 
 interface ProductCardProps {
   product: Product;
   variant?: "default" | "flash-sale";
 }
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
-
 const ProductCard = ({ product, variant = "default" }: ProductCardProps) => {
   const navigate = useNavigate();
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const discount = product.salePrice
     ? Math.round(((product.price - product.salePrice) / product.price) * 100)
     : 0;
-
-  const getImageUrl = (imagePath?: string) => {
-    if (!imagePath) return "https://via.placeholder.com/300x300?text=No+Image";
-    if (imagePath.startsWith("http")) return imagePath;
-
-    // Normalizing paths so no double slashes happen.
-    const baseUrl = API_URL.replace(/\/+$/, "");
-    const path = imagePath.startsWith("/") ? imagePath : `/${imagePath}`;
-    
-    // Convert backslashes to forward slashes just in case.
-    return `${baseUrl}${path.replace(/\\/g, "/")}`;
-  };
-
-  const imageUrl = product.image && product.image.length > 0
-    ? getImageUrl(product.image[0])
-    : "https://via.placeholder.com/300x300?text=No+Image";
 
   const formatPrice = (price: number) => {
     return price.toLocaleString("vi-VN") + "đ";
@@ -37,10 +29,36 @@ const ProductCard = ({ product, variant = "default" }: ProductCardProps) => {
 
   const isFlashSale = variant === "flash-sale";
 
+  const handleSave = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    if (saved || saving) return;
+    try {
+      setSaving(true);
+      await wishlistService.addToWishlist(product._id);
+      setSaved(true);
+      toast.success("Đã thêm vào danh sách yêu thích");
+    } catch (error) {
+      const apiError = error as { response?: { data?: { message?: string } } };
+      toast.error(apiError.response?.data?.message || "Không thể thêm vào yêu thích");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <Paper
       elevation={0}
+      role="link"
+      tabIndex={0}
+      aria-label={`Xem sản phẩm ${product.name}`}
       onClick={() => navigate(`/product/${product._id}`)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") navigate(`/product/${product._id}`);
+      }}
       sx={{
         cursor: "pointer",
         borderRadius: 2,
@@ -61,9 +79,8 @@ const ProductCard = ({ product, variant = "default" }: ProductCardProps) => {
     >
       {/* Image */}
       <Box sx={{ position: "relative", pt: "100%", overflow: "hidden" }}>
-        <Box
-          component="img"
-          src={imageUrl}
+        <ProductImage
+          src={product.image?.[0]}
           alt={product.name}
           sx={{
             position: "absolute",
@@ -71,7 +88,8 @@ const ProductCard = ({ product, variant = "default" }: ProductCardProps) => {
             left: 0,
             width: "100%",
             height: "100%",
-            objectFit: "cover",
+            objectFit: "contain",
+            p: 1,
             transition: "transform 0.4s ease",
             "&:hover": {
               transform: "scale(1.05)",
@@ -93,6 +111,26 @@ const ProductCard = ({ product, variant = "default" }: ProductCardProps) => {
             }}
           />
         )}
+        <Tooltip title={saved ? "Đã lưu vào yêu thích" : "Thêm vào yêu thích"}>
+          <IconButton
+            aria-label="Thêm vào danh sách yêu thích"
+            onClick={handleSave}
+            disabled={saving}
+            sx={{
+              position: "absolute",
+              top: 8,
+              left: 8,
+              width: 36,
+              height: 36,
+              bgcolor: "rgba(255,255,255,.94)",
+              color: saved ? "#e11d48" : "#475569",
+              boxShadow: "0 5px 16px rgba(15,23,42,.14)",
+              "&:hover": { bgcolor: "#fff1f2", color: "#e11d48" },
+            }}
+          >
+            {saving ? <CircularProgress size={18} /> : <Heart size={18} fill={saved ? "currentColor" : "none"} />}
+          </IconButton>
+        </Tooltip>
       </Box>
 
       {/* Info */}

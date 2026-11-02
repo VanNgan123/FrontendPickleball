@@ -3,26 +3,27 @@ import type { Product } from "../../types";
 import { useNavigate } from "react-router-dom";
 import {
   Box, Container, Typography, Paper, Button, Divider, IconButton,
-  Fab, Tooltip, CircularProgress,
+  CircularProgress,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import {
-  ChevronLeft, ChevronRight, Zap, Map as MapIcon, Phone, MessageCircle,
+  ChevronLeft, ChevronRight, Zap,
   Shield, Truck, Headphones, Activity, CircleDot, Footprints, Layers, Shirt,
 } from "lucide-react";
 
 import Banner from "../../components/Banner";
 import MainLayout from "../../layout/MainLayout/MainLayout";
-import Countdown from "../../components/Countdown";
 import CompactProductCard from "../../components/CompactProductCard";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store/store";
 import { fetchAllProducts } from "../../store/slices/productSlice";
 import { fetchCategories } from "../../store/slices/categorySlice";
-import banner1 from "../../assets/banner/banner1.jpg";
+import banner1 from "../../assets/banner/banner1.webp";
 import banner2 from "../../assets/banner/banner2.jpg";
-import banner3 from "../../assets/banner/banner3.jpg";
+import banner3 from "../../assets/banner/banner3.webp";
 import banner4 from "../../assets/banner/banner4.jpg";
+import { FREE_SHIPPING_THRESHOLD, formatCurrency } from "../../config/commerce";
+import { useImageFallback } from "../../utils/image";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -222,7 +223,13 @@ const CategoryShowcase = ({
           return (
             <Box
               key={category._id}
+              role="link"
+              tabIndex={0}
+              aria-label={`Xem danh mục ${category.name}`}
               onClick={() => onSelect(category._id)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") onSelect(category._id);
+              }}
               sx={{
                 position: "relative",
                 minHeight: { xs: 260, md: 304 },
@@ -354,6 +361,10 @@ const Home = () => {
     dispatch(fetchCategories());
   }, [dispatch]);
 
+  useEffect(() => {
+    document.title = "Pickleball Bạch Đằng | Dụng cụ Pickleball";
+  }, []);
+
   // Flash sale products
   const flashSaleProducts = products.filter((p) => p.salePrice && p.salePrice < p.price);
   const flashSaleDisplay = flashSaleProducts.length > 0 ? flashSaleProducts.slice(0, 8) : products.slice(0, 8);
@@ -375,7 +386,7 @@ const Home = () => {
     ).slice(0, 10);
 
   const getImageUrl = (imagePath?: string) => {
-    if (!imagePath) return "https://via.placeholder.com/400x400?text=No+Image";
+    if (!imagePath) return "/product-placeholder.svg";
     if (imagePath.startsWith("http")) return imagePath;
     const baseUrl = API_URL.replace(/\/+$/, "");
     const path = imagePath.startsWith("/") ? imagePath : `/${imagePath}`;
@@ -386,7 +397,7 @@ const Home = () => {
 
   const dealImageUrl = dealProduct?.image?.[0]
     ? getImageUrl(dealProduct.image[0])
-    : "https://via.placeholder.com/400x400?text=No+Image";
+    : "/product-placeholder.svg";
 
   const dealDiscount = dealProduct?.salePrice
     ? Math.round(((dealProduct.price - dealProduct.salePrice) / dealProduct.price) * 100)
@@ -404,8 +415,8 @@ const Home = () => {
           <Grid container spacing={2} sx={{ mb: 4 }}>
             {[
               { icon: <Shield size={28} />, title: "HOÀN TIỀN 100%", desc: "Nếu phát hiện hàng giả" },
-              { icon: <Truck size={28} />, title: "GIAO HÀNG TOÀN QUỐC", desc: "Miễn phí từ 1 triệu đồng" },
-              { icon: <Headphones size={28} />, title: "TƯ VẤN 24/7", desc: "Đội ngũ chuyên môn cao" },
+              { icon: <Truck size={28} />, title: "GIAO HÀNG TOÀN QUỐC", desc: `Miễn phí từ ${formatCurrency(FREE_SHIPPING_THRESHOLD)}` },
+              { icon: <Headphones size={28} />, title: "TƯ VẤN TRỰC TUYẾN", desc: "Hỗ trợ qua trợ lý trên website" },
             ].map((item, i) => (
               <Grid size={{ xs: 12, md: 4 }} key={i}>
                 <Paper
@@ -449,7 +460,7 @@ const Home = () => {
                     }}
                   >
                     <Typography variant="h6" sx={{ fontWeight: 900, mb: 2, color: "#002c4b", fontSize: "1rem" }}>
-                      CHỈ CÓ TRONG HÔM NAY
+                      ƯU ĐÃI NỔI BẬT
                     </Typography>
                     {dealProduct && (
                       <>
@@ -458,21 +469,27 @@ const Home = () => {
                             component="img"
                             src={dealImageUrl}
                             alt={dealProduct.name}
+                            onError={useImageFallback}
+                            loading="lazy"
+                            onClick={() => navigate(`/product/${dealProduct._id}`)}
                             sx={{
                               width: "100%", maxWidth: 180, borderRadius: 2,
+                              cursor: "pointer",
                               transition: "transform 0.3s ease",
                               "&:hover": { transform: "scale(1.05)" },
                             }}
                           />
-                          <Box sx={{
-                            position: "absolute", top: 0, right: "calc(50% - 90px)",
-                            bgcolor: "#E60023", color: "white", width: 40, height: 40,
-                            borderRadius: "50%", fontWeight: 900, fontSize: "0.75rem",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            boxShadow: "0 2px 8px rgba(230,0,35,0.4)",
-                          }}>
-                            -{dealDiscount}%
-                          </Box>
+                          {dealDiscount > 0 && (
+                            <Box sx={{
+                              position: "absolute", top: 0, right: "calc(50% - 90px)",
+                              bgcolor: "#DC2626", color: "white", minWidth: 44, height: 32,
+                              px: 1, borderRadius: 99, fontWeight: 900, fontSize: "0.75rem",
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              boxShadow: "0 6px 16px rgba(220,38,38,0.22)",
+                            }}>
+                              -{dealDiscount}%
+                            </Box>
+                          )}
                         </Box>
                         <Typography variant="body2" sx={{
                           fontWeight: 600, mb: 1.5, color: "#1a1a1a", minHeight: "2.5em",
@@ -481,18 +498,20 @@ const Home = () => {
                         }}>
                           {dealProduct.name}
                         </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 900, color: "#E60023" }}>
+                        <Typography variant="h6" sx={{ fontWeight: 900, color: "#0F766E" }}>
                           {formatPrice(dealProduct.salePrice || dealProduct.price)}
                         </Typography>
                       </>
                     )}
                     <Divider sx={{ my: 2 }} />
-                    <Typography variant="caption" sx={{ fontWeight: 800, display: "block", mb: 1.5, color: "#1a1a1a" }}>
-                      ƯU ĐÃI KẾT THÚC SAU:
-                    </Typography>
-                    <Box sx={{ display: "flex", justifyContent: "center" }}>
-                      <Countdown />
-                    </Box>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      onClick={() => navigate("/products?promo=true")}
+                      sx={{ color: "#0F766E", borderColor: "#0F766E", fontWeight: 800 }}
+                    >
+                      Xem các sản phẩm giảm giá
+                    </Button>
                   </Paper>
                 </Grid>
 
@@ -504,14 +523,15 @@ const Home = () => {
                   }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Zap size={22} style={{ color: "#FFD700" }} />
-                        <Typography variant="h6" sx={{ fontWeight: 900, fontStyle: "italic", color: "#FFD700" }}>
-                          FLASH SALE GIÁ SỐC
+                        <Zap size={22} style={{ color: "#BEF264" }} />
+                        <Typography variant="h6" sx={{ fontWeight: 900, color: "#BEF264" }}>
+                          SẢN PHẨM ĐANG GIẢM GIÁ
                         </Typography>
                       </Box>
                       <Button
                         variant="outlined" size="small"
                         endIcon={<ChevronRight size={14} />}
+                        onClick={() => navigate("/products?promo=true")}
                         sx={{
                           color: "white", borderColor: "rgba(255,255,255,0.4)",
                           fontWeight: 700, fontSize: "0.75rem",
@@ -572,40 +592,6 @@ const Home = () => {
           )}
         </Container>
       </MainLayout>
-
-      {/* === FLOATING ACTION BUTTONS === */}
-      <Box sx={{
-        position: "fixed", right: 24, bottom: 24,
-        display: "flex", flexDirection: "column", gap: 2, zIndex: 1000,
-      }}>
-        <Tooltip title="Tìm đường" placement="left">
-          <Fab size="small" sx={{
-            bgcolor: "#0F766E", color: "white",
-            "&:hover": { bgcolor: "#0D5F59" },
-            boxShadow: "0 4px 12px rgba(15,118,110,0.32)",
-          }}>
-            <MapIcon size={20} />
-          </Fab>
-        </Tooltip>
-        <Tooltip title="Chat Zalo" placement="left">
-          <Fab size="small" sx={{
-            bgcolor: "#0084ff", color: "white",
-            "&:hover": { bgcolor: "#006acc" },
-            boxShadow: "0 4px 12px rgba(0,132,255,0.4)",
-          }}>
-            <MessageCircle size={20} />
-          </Fab>
-        </Tooltip>
-        <Tooltip title="Hotline" placement="left">
-          <Fab size="small" sx={{
-            bgcolor: "#25D366", color: "white",
-            "&:hover": { bgcolor: "#1eb954" },
-            boxShadow: "0 4px 12px rgba(37,211,102,0.4)",
-          }}>
-            <Phone size={20} />
-          </Fab>
-        </Tooltip>
-      </Box>
 
     </>
   );

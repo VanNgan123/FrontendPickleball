@@ -8,6 +8,23 @@ export interface Category {
   updatedAt?: string;
 }
 
+export interface ProductReview {
+  _id: string;
+  productId: string;
+  userId: { _id: string; name: string; email?: string };
+  rating: number;
+  comment: string;
+  images: string[];
+  helpful: number;
+  adminReply?: { text?: string; replyAt?: string };
+  createdAt: string;
+}
+
+export interface ProductRatingSummary {
+  avgRating: number;
+  totalReviews: number;
+}
+
 export interface Product {
   _id: string;
   name: string;
@@ -22,6 +39,7 @@ export interface Product {
   specs?: Record<string, unknown>;
   createdAt?: string;
   updatedAt?: string;
+  soldCount?: number;
 }
 
 export interface ProductResponse {

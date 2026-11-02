@@ -21,6 +21,7 @@ interface SidebarFilterProps {
   onCategoryChange: (catId: string) => void;
   onPriceRangeChange: (idx: number | null) => void;
   onBrandChange: (brand: string | null) => void;
+  mobile?: boolean;
 }
 
 // Collapsible section header
@@ -31,8 +32,12 @@ const SidebarSection = ({
 }) => (
   <Box sx={{ mb: 0 }}>
     <Box
+      component="button"
+      type="button"
+      aria-expanded={open}
       onClick={onToggle}
       sx={{
+        width: "100%", border: 0, bgcolor: "transparent", font: "inherit",
         display: "flex", justifyContent: "space-between", alignItems: "center",
         py: 1.5, px: 2, cursor: "pointer", borderBottom: "1px solid #f0f0f0",
         "&:hover": { bgcolor: "#fafafa" },
@@ -53,6 +58,7 @@ const SidebarFilter = ({
   categories, brands, priceRanges,
   selectedCategory, selectedPriceRange, selectedBrand,
   onCategoryChange, onPriceRangeChange, onBrandChange,
+  mobile = false,
 }: SidebarFilterProps) => {
   const [openCategory, setOpenCategory] = useState(true);
   const [openPrice, setOpenPrice] = useState(true);
@@ -64,10 +70,10 @@ const SidebarFilter = ({
     <Paper
       elevation={0}
       sx={{
-        width: 250, flexShrink: 0, bgcolor: "#fff",
+        width: mobile ? "100%" : 250, flexShrink: 0, bgcolor: "#fff",
         border: "1px solid #eee", borderRadius: 2,
-        alignSelf: "flex-start", position: "sticky", top: 80,
-        display: { xs: "none", md: "block" },
+        alignSelf: "flex-start", position: mobile ? "static" : "sticky", top: 80,
+        display: mobile ? "block" : { xs: "none", md: "block" },
       }}
     >
       {/* Categories */}

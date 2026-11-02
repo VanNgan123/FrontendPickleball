@@ -16,14 +16,14 @@ export interface CreateOrderPayload {
     price?: number;
   }[];
   shippingAddress: ShippingAddress;
-  paymentMethod: "COD" | "VNPay" | "Momo" | "BankTransfer";
+  paymentMethod: "COD" | "ZaloPay";
   total?: number;
   couponCode?: string | null;
 }
 
 export interface CreateOrderFromCartPayload {
   shippingAddress: ShippingAddress;
-  paymentMethod: "COD" | "VNPay" | "Momo" | "BankTransfer";
+  paymentMethod: "COD" | "ZaloPay";
   couponCode?: string | null;
 }
 

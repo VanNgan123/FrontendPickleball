@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
-  Box, Container, Typography, Paper, Grid, Pagination,
+  Box, Container, Typography, Paper, Grid, Pagination, Button, Drawer, IconButton,
 } from "@mui/material";
 
 import MainLayout from "../../layout/MainLayout/MainLayout";
@@ -13,7 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store/store";
 import { searchProducts, fetchAllProducts } from "../../store/slices/productSlice";
 import { fetchCategories } from "../../store/slices/categorySlice";
-import { ShoppingBag } from "lucide-react";
+import { Filter, ShoppingBag, X } from "lucide-react";
 
 const priceRanges = [
   { label: "0 đ - 1.000.000 đ", min: 0, max: 1000000 },
@@ -37,8 +37,13 @@ const Products = () => {
   );
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "newest");
   const [currentPage, setCurrentPage] = useState(Number(searchParams.get("page")) || 1);
-  const [selectedPriceRange, setSelectedPriceRange] = useState<number | null>(null);
-  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
+  const initialPriceRange = Number(searchParams.get("priceRange"));
+  const [selectedPriceRange, setSelectedPriceRange] = useState<number | null>(
+    Number.isInteger(initialPriceRange) && priceRanges[initialPriceRange] ? initialPriceRange : null
+  );
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(searchParams.get("brand"));
+  const [filterOpen, setFilterOpen] = useState(false);
+  const promoOnly = searchParams.get("promo") === "true";
 
   useEffect(() => {
     dispatch(fetchCategories());
@@ -55,16 +60,20 @@ const Products = () => {
       params.maxPrice = String(priceRanges[selectedPriceRange].max);
     }
     if (selectedBrand) params.brand = selectedBrand;
+    if (promoOnly) params.promo = "true";
     dispatch(searchProducts(params));
-  }, [selectedCategory, sortBy, currentPage, selectedPriceRange, selectedBrand, dispatch]);
+  }, [selectedCategory, sortBy, currentPage, selectedPriceRange, selectedBrand, promoOnly, dispatch]);
 
   useEffect(() => {
     const urlParams: Record<string, string> = {};
     if (selectedCategory !== "all") urlParams.category = selectedCategory;
     if (sortBy !== "newest") urlParams.sort = sortBy;
     if (currentPage > 1) urlParams.page = String(currentPage);
+    if (selectedPriceRange !== null) urlParams.priceRange = String(selectedPriceRange);
+    if (selectedBrand) urlParams.brand = selectedBrand;
+    if (promoOnly) urlParams.promo = "true";
     setSearchParams(urlParams, { replace: true });
-  }, [selectedCategory, sortBy, currentPage]);
+  }, [selectedCategory, sortBy, currentPage, selectedPriceRange, selectedBrand, promoOnly, setSearchParams]);
 
   const brands = useMemo(() => {
     const set = new Set<string>();
@@ -94,7 +103,19 @@ const Products = () => {
           </Typography>
         </Box>
 
-        <SortBar sortBy={sortBy} onSortChange={(s) => { setSortBy(s); setCurrentPage(1); }} />
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<Filter size={17} />}
+            onClick={() => setFilterOpen(true)}
+            sx={{ display: { xs: "inline-flex", md: "none" } }}
+          >
+            Bộ lọc
+          </Button>
+          <Box sx={{ ml: "auto" }}>
+            <SortBar sortBy={sortBy} onSortChange={(s) => { setSortBy(s); setCurrentPage(1); }} />
+          </Box>
+        </Box>
 
         <Box sx={{ display: "flex", gap: 3 }}>
           <SidebarFilter
@@ -175,6 +196,30 @@ const Products = () => {
           </Box>
         </Box>
       </Container>
+      <Drawer
+        anchor="bottom"
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        PaperProps={{ sx: { maxHeight: "86vh", borderRadius: "20px 20px 0 0", p: 2 } }}
+      >
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+          <Typography variant="h6" sx={{ fontWeight: 900 }}>Lọc sản phẩm</Typography>
+          <IconButton aria-label="Đóng bộ lọc" onClick={() => setFilterOpen(false)}><X size={20} /></IconButton>
+        </Box>
+        <Box sx={{ overflowY: "auto" }}>
+          <SidebarFilter
+            mobile
+            categories={categories} brands={brands} priceRanges={priceRanges}
+            selectedCategory={selectedCategory}
+            selectedPriceRange={selectedPriceRange}
+            selectedBrand={selectedBrand}
+            onCategoryChange={(c) => { setSelectedCategory(c); setCurrentPage(1); }}
+            onPriceRangeChange={(i) => { setSelectedPriceRange(i); setCurrentPage(1); }}
+            onBrandChange={(b) => { setSelectedBrand(b); setCurrentPage(1); }}
+          />
+        </Box>
+        <Button variant="contained" fullWidth onClick={() => setFilterOpen(false)} sx={{ mt: 2, py: 1.2 }}>Xem kết quả</Button>
+      </Drawer>
     </MainLayout>
   );
 };

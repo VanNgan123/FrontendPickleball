@@ -19,13 +19,13 @@ import {
   Lock,
   Person,
   Phone,
-  SportsBaseball,
   CheckCircle,
 } from "@mui/icons-material";
 import { registerUser, clearAuthError } from "../../store/slices/authSlice";
 import type { AppDispatch, RootState } from "../../store/store";
 import toast from "react-hot-toast";
 import MainLayout from "../../layout/MainLayout/MainLayout";
+import logoImage from "../../assets/logo/image.webp";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -161,8 +161,8 @@ const SignUp = () => {
           <Box sx={styles.formSide}>
             <Box sx={styles.formCard}>
               <Box sx={styles.mobileLogoRow}>
-                <SportsBaseball sx={{ color: "#dc2626", fontSize: "28px" }} />
-                <Typography sx={styles.mobileLogoText}>PickleballStore</Typography>
+                <Box component="img" src={logoImage} alt="Pickleball Bạch Đằng" sx={{ width: 34, height: 34, objectFit: "contain" }} />
+                <Typography sx={styles.mobileLogoText}>Pickleball Bạch Đằng</Typography>
               </Box>
 
               <Typography sx={styles.formTitle}>Tạo tài khoản mới ✨</Typography>
@@ -392,13 +392,13 @@ const SignUp = () => {
           <Box sx={styles.brandingSide}>
             <Box sx={styles.brandingContent}>
               <Box sx={styles.logoContainer}>
-                <SportsBaseball sx={styles.logoIcon} />
+                <Box component="img" src={logoImage} alt="Pickleball Bạch Đằng" sx={styles.brandLogo} />
               </Box>
               <Typography sx={styles.brandTitle}>
-                Tham gia cộng đồng
+                Gia nhập cộng đồng
                 <br />
                 <Box component="span" sx={styles.brandHighlight}>
-                  Pickleball
+                  Bạch Đằng Pickleball
                 </Box>
               </Typography>
               <Typography sx={styles.brandSubtitle}>
@@ -408,14 +408,14 @@ const SignUp = () => {
               {/* Benefit cards */}
               <Box sx={styles.benefitList}>
                 {[
-                  { icon: "🚀", text: "Giao hàng siêu tốc toàn quốc" },
-                  { icon: "💎", text: "Sản phẩm chính hãng 100%" },
-                  { icon: "🔥", text: "Ưu đãi độc quyền cho thành viên" },
-                  { icon: "🛡️", text: "Bảo hành & đổi trả dễ dàng" },
+                  "Giao hàng toàn quốc",
+                  "Sản phẩm có nguồn gốc rõ ràng",
+                  "Ưu đãi dành cho thành viên",
+                  "Đổi trả minh bạch, dễ theo dõi",
                 ].map((item, index) => (
                   <Box key={index} sx={styles.benefitCard(index)}>
-                    <Typography sx={{ fontSize: "1.3rem" }}>{item.icon}</Typography>
-                    <Typography sx={styles.benefitText}>{item.text}</Typography>
+                    <CheckCircle sx={{ fontSize: "1.25rem", color: "#BEF264" }} />
+                    <Typography sx={styles.benefitText}>{item}</Typography>
                   </Box>
                 ))}
               </Box>
@@ -458,7 +458,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "#f4f6f8",
+    background: "#F8FAFC",
     position: "relative",
     overflow: "hidden",
     p: { xs: 2, md: 5 },
@@ -474,7 +474,7 @@ const styles = {
     width: "350px",
     height: "350px",
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(230, 0, 35, 0.08) 0%, transparent 70%)",
+    background: "radial-gradient(circle, rgba(132, 204, 22, 0.14) 0%, transparent 70%)",
     top: "-80px",
     left: "-80px",
     animation: "orbFloat 9s ease-in-out infinite",
@@ -485,7 +485,7 @@ const styles = {
     width: "300px",
     height: "300px",
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(8, 34, 47, 0.06) 0%, transparent 70%)",
+    background: "radial-gradient(circle, rgba(15, 118, 110, 0.1) 0%, transparent 70%)",
     bottom: "-60px",
     right: "-60px",
     animation: "orbFloat 11s ease-in-out infinite reverse",
@@ -496,7 +496,7 @@ const styles = {
     width: "200px",
     height: "200px",
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(230, 0, 35, 0.05) 0%, transparent 70%)",
+    background: "radial-gradient(circle, rgba(15, 23, 42, 0.06) 0%, transparent 70%)",
     top: "40%",
     right: "30%",
     animation: "orbFloat 13s ease-in-out infinite",
@@ -548,12 +548,12 @@ const styles = {
   mobileLogoText: {
     fontSize: "1.2rem",
     fontWeight: 800,
-    color: "#002c4b",
+    color: "#0F172A",
   },
   formTitle: {
     fontSize: { xs: "1.5rem", md: "1.75rem" },
     fontWeight: 800,
-    color: "#002c4b",
+    color: "#0F172A",
     mb: 0.5,
     letterSpacing: "-0.01em",
   },
@@ -593,14 +593,14 @@ const styles = {
         borderColor: "#cbd5e1",
       },
       "&.Mui-focused fieldset": {
-        borderColor: "#E60023",
-        boxShadow: "0 0 0 3px rgba(230, 0, 35, 0.1)",
+        borderColor: "#0F766E",
+        boxShadow: "0 0 0 3px rgba(15, 118, 110, 0.12)",
       },
     },
     "& .MuiInputLabel-root": {
       color: "#64748b",
       fontSize: "0.9rem",
-      "&.Mui-focused": { color: "#E60023" },
+      "&.Mui-focused": { color: "#0F766E" },
     },
     "& .MuiFormHelperText-root": {
       fontSize: "0.75rem",
@@ -613,20 +613,20 @@ const styles = {
     fontSize: "1rem",
     fontWeight: 700,
     textTransform: "none",
-    background: "linear-gradient(135deg, #E60023 0%, #ba0000 100%)",
-    boxShadow: "0 4px 15px rgba(230, 0, 35, 0.3)",
+    background: "linear-gradient(135deg, #0F766E 0%, #0D5F59 100%)",
+    boxShadow: "0 8px 20px rgba(15, 118, 110, 0.24)",
     transition: "all 0.3s ease",
     mt: 0.5,
     "&:hover": {
-      background: "linear-gradient(135deg, #ff1a3c 0%, #E60023 100%)",
-      boxShadow: "0 6px 25px rgba(230, 0, 35, 0.45)",
+      background: "linear-gradient(135deg, #118A80 0%, #0F766E 100%)",
+      boxShadow: "0 10px 28px rgba(15, 118, 110, 0.32)",
       transform: "translateY(-2px)",
     },
     "&:active": {
       transform: "translateY(0)",
     },
     "&.Mui-disabled": {
-      background: "rgba(230, 0, 35, 0.3)",
+      background: "rgba(15, 118, 110, 0.35)",
       color: "rgba(255,255,255,0.8)",
     },
     ...shimmer,
@@ -653,18 +653,18 @@ const styles = {
     fontSize: "0.9rem",
   },
   loginLink: {
-    color: "#E60023",
+    color: "#0F766E",
     fontWeight: 700,
     cursor: "pointer",
     transition: "all 0.2s ease",
     "&:hover": {
-      color: "#ba0000",
+      color: "#0D5F59",
       textDecoration: "underline",
     },
   },
   brandingSide: {
     flex: "1 1 45%",
-    background: "linear-gradient(135deg, #0d3b56 0%, #005691 100%)",
+    background: "linear-gradient(145deg, #0F172A 0%, #0B3B46 48%, #0F766E 100%)",
     display: { xs: "none", md: "flex" },
     alignItems: "center",
     justifyContent: "center",
@@ -692,8 +692,7 @@ const styles = {
     width: "70px",
     height: "70px",
     borderRadius: "20px",
-    background: "rgba(255,255,255,0.15)",
-    backdropFilter: "blur(20px)",
+    background: "rgba(255,255,255,0.94)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -701,19 +700,20 @@ const styles = {
     mb: 3,
     boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
     border: "1px solid rgba(255,255,255,0.25)",
-    transform: "rotate(-5deg)",
+    transform: "none",
     transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
     "&:hover": {
-      transform: "rotate(0deg) scale(1.08)",
-      background: "rgba(255,255,255,0.2)",
+      transform: "scale(1.05)",
+      background: "#fff",
     },
   },
-  logoIcon: {
-    fontSize: "36px",
-    color: "#fff",
+  brandLogo: {
+    width: "76%",
+    height: "76%",
+    objectFit: "contain",
   },
   brandTitle: {
-    fontFamily: '"Outfit", "Inter", sans-serif',
+    fontFamily: "inherit",
     fontSize: "2.1rem",
     fontWeight: 800,
     color: "#fff",
@@ -722,14 +722,14 @@ const styles = {
     lineHeight: 1.3,
   },
   brandHighlight: {
-    background: "linear-gradient(90deg, #fbbf24, #f59e0b)",
+    background: "linear-gradient(90deg, #BEF264, #84CC16)",
     backgroundClip: "text",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
-    ml: 1,
+    display: "inline-block",
   },
   brandSubtitle: {
-    fontFamily: '"Inter", sans-serif',
+    fontFamily: "inherit",
     fontSize: "0.95rem",
     color: "rgba(255,255,255,0.9)",
     mb: 4,
@@ -762,7 +762,7 @@ const styles = {
     },
   }),
   benefitText: {
-    fontFamily: '"Inter", sans-serif',
+    fontFamily: "inherit",
     fontSize: "0.88rem",
     color: "#fff",
     fontWeight: 500,

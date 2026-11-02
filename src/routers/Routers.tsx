@@ -5,6 +5,7 @@ import { Box, CircularProgress } from "@mui/material";
 // Non-lazy components
 import ScrollToTop from "../components/ScrollToTop";
 import withAuthAdmin from "../hocs/withAuthAdmin";
+import withAuthHome from "../hocs/withAuthHome";
 
 // Premium themed fallback loader
 const PageLoader = () => (
@@ -40,8 +41,10 @@ const About = lazy(() => import("../pages/About"));
 const News = lazy(() => import("../pages/News"));
 const Courts = lazy(() => import("../pages/Courts"));
 const Support = lazy(() => import("../pages/Support"));
+const Policies = lazy(() => import("../pages/Policies"));
 const Unauthorized = lazy(() => import("../pages/Unauthorized"));
 const NotFound = lazy(() => import("../pages/NotFound"));
+const Wishlist = lazy(() => import("../pages/Wishlist"));
 
 // Lazy loaded Admin pages
 const AdminDashboard = lazy(() => import("../pages/Admin/AdminDashboard"));
@@ -50,6 +53,8 @@ const AdminCategories = lazy(() => import("../pages/Admin/AdminCategories"));
 const AdminOrders = lazy(() => import("../pages/Admin/AdminOrders"));
 const AdminCoupons = lazy(() => import("../pages/Admin/AdminCoupons"));
 const AdminReviews = lazy(() => import("../pages/Admin/AdminReviews"));
+const AdminChatbot = lazy(() => import("../pages/Admin/AdminChatbot.tsx"));
+const AdminUsers = lazy(() => import("../pages/Admin/AdminUsers"));
 
 // HOC wrappers with dynamic lazy components
 const AdminDashboardWithAuth = withAuthAdmin(AdminDashboard);
@@ -58,6 +63,9 @@ const AdminCategoriesWithAuth = withAuthAdmin(AdminCategories);
 const AdminOrdersWithAuth = withAuthAdmin(AdminOrders);
 const AdminCouponsWithAuth = withAuthAdmin(AdminCoupons);
 const AdminReviewsWithAuth = withAuthAdmin(AdminReviews);
+const AdminChatbotWithAuth = withAuthAdmin(AdminChatbot);
+const AdminUsersWithAuth = withAuthAdmin(AdminUsers, ["admin"]);
+const WishlistWithAuth = withAuthHome(Wishlist);
 
 const AppRouters = () => {
   return (
@@ -82,6 +90,8 @@ const AppRouters = () => {
           <Route path="/news" element={<News />} />
           <Route path="/courts" element={<Courts />} />
           <Route path="/support" element={<Support />} />
+          <Route path="/policies/:type" element={<Policies />} />
+          <Route path="/wishlist" element={<WishlistWithAuth />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
 
           <Route path="/admin" element={<AdminDashboardWithAuth />} />
@@ -90,6 +100,8 @@ const AppRouters = () => {
           <Route path="/admin/orders" element={<AdminOrdersWithAuth />} />
           <Route path="/admin/coupons" element={<AdminCouponsWithAuth />} />
           <Route path="/admin/reviews" element={<AdminReviewsWithAuth />} />
+          <Route path="/admin/chatbot" element={<AdminChatbotWithAuth />} />
+          <Route path="/admin/users" element={<AdminUsersWithAuth />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

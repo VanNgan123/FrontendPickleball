@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
 	Box, Container, Typography,
-	Paper, Grid, Pagination, Divider,
+	Paper, Grid, Pagination, Divider, Button, Drawer, IconButton,
 } from "@mui/material";
-import { Search, X } from "lucide-react";
+import { Filter, Search, X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store/store";
 import { searchProducts } from "../../store/slices/productSlice";
@@ -38,6 +38,7 @@ const SearchResults = () => {
 	const [selectedCategory, setSelectedCategory] = useState("all");
 	const [selectedPriceRange, setSelectedPriceRange] = useState<number | null>(null);
 	const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
+	const [filterOpen, setFilterOpen] = useState(false);
 
 	useEffect(() => {
 		dispatch(fetchCategories());
@@ -82,12 +83,9 @@ const SearchResults = () => {
 							<Typography variant="body1" sx={{ fontWeight: 800, color: "#E60023" }}>
 								"{keyword}"
 							</Typography>
-							<Box
-								onClick={handleClearSearch}
-								sx={{ cursor: "pointer", display: "flex", color: "#E60023", "&:hover": { opacity: 0.7 } }}
-							>
+							<IconButton aria-label="Xóa tìm kiếm" size="small" onClick={handleClearSearch} sx={{ color: "#E60023" }}>
 								<X size={14} />
-							</Box>
+							</IconButton>
 						</Box>
 					</Box>
 
@@ -100,8 +98,10 @@ const SearchResults = () => {
 
 				<Divider sx={{ mb: 3 }} />
 
-				{/* Sort bar */}
-				<SortBar sortBy={sortBy} onSortChange={(s) => { setSortBy(s); setCurrentPage(1); }} />
+				<Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
+					<Button variant="outlined" startIcon={<Filter size={17} />} onClick={() => setFilterOpen(true)} sx={{ display: { xs: "inline-flex", md: "none" } }}>Bộ lọc</Button>
+					<Box sx={{ ml: "auto" }}><SortBar sortBy={sortBy} onSortChange={(s) => { setSortBy(s); setCurrentPage(1); }} /></Box>
+				</Box>
 
 				<Box sx={{ display: "flex", gap: 3 }}>
 					{/* Sidebar */}
@@ -168,6 +168,16 @@ const SearchResults = () => {
 					</Box>
 				</Box>
 			</Container>
+			<Drawer anchor="bottom" open={filterOpen} onClose={() => setFilterOpen(false)} PaperProps={{ sx: { maxHeight: "86vh", borderRadius: "20px 20px 0 0", p: 2 } }}>
+				<Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+					<Typography variant="h6" sx={{ fontWeight: 900 }}>Lọc kết quả</Typography>
+					<IconButton aria-label="Đóng bộ lọc" onClick={() => setFilterOpen(false)}><X size={20} /></IconButton>
+				</Box>
+				<Box sx={{ overflowY: "auto" }}>
+					<SidebarFilter mobile categories={categories} brands={brands} priceRanges={priceRanges} selectedCategory={selectedCategory} selectedPriceRange={selectedPriceRange} selectedBrand={selectedBrand} onCategoryChange={(c) => { setSelectedCategory(c); setCurrentPage(1); }} onPriceRangeChange={(i) => { setSelectedPriceRange(i); setCurrentPage(1); }} onBrandChange={(b) => { setSelectedBrand(b); setCurrentPage(1); }} />
+				</Box>
+				<Button variant="contained" fullWidth onClick={() => setFilterOpen(false)} sx={{ mt: 2 }}>Xem kết quả</Button>
+			</Drawer>
 		</MainLayout>
 	);
 };

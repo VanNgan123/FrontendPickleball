@@ -1,6 +1,5 @@
 import { Box, List, ListItemButton, ListItemText, Typography } from "@mui/material";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
 import SportsTennisOutlinedIcon from "@mui/icons-material/SportsTennisOutlined";
@@ -21,13 +20,12 @@ import type { RootState } from "../../store/store";
 // - "route": navigates to a dedicated page
 interface NavItem {
   label: string;
-  icon: typeof StarBorderRoundedIcon;
+  icon: typeof LocalOfferOutlinedIcon;
   type: "filter" | "route";
   path: string; // For "route" type: full path. For "filter" type: query string to append to /products
 }
 
 const staticTopItems: NavItem[] = [
-  { label: "Chỉ có trong hôm nay", icon: StarBorderRoundedIcon, type: "filter", path: "/products?tag=today" },
   { label: "Khuyến mãi", icon: LocalOfferOutlinedIcon, type: "filter", path: "/products?promo=true" },
   { label: "Có gì mới", icon: ChatBubbleOutlineRoundedIcon, type: "filter", path: "/products?sort=newest" },
 ];

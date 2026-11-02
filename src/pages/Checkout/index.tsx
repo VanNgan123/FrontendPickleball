@@ -30,7 +30,6 @@ import {
   CheckCircle2,
   CreditCard,
   Smartphone,
-  Building2,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store/store";
@@ -40,11 +39,15 @@ import type { ShippingAddress } from "../../services/orderService";
 import paymentService from "../../services/paymentService";
 import MainLayout from "../../layout/MainLayout/MainLayout";
 import toast from "react-hot-toast";
+import { calculateShippingFee } from "../../config/commerce";
+import { Link as RouterLink } from "react-router-dom";
+import { Link as MuiLink } from "@mui/material";
+import { useImageFallback } from "../../utils/image";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const getImageUrl = (imagePath?: string) => {
-  if (!imagePath) return "/placeholder.png";
+  if (!imagePath) return "/product-placeholder.svg";
   if (imagePath.startsWith("http")) return imagePath;
   const baseUrl = API_URL.replace(/\/+$/, "");
   const path = imagePath.startsWith("/") ? imagePath : `/${imagePath}`;
@@ -64,22 +67,10 @@ const PAYMENT_METHODS = [
     icon: <Truck size={20} color="#25D366" />,
   },
   {
-    value: "VNPay",
-    label: "VNPay",
-    desc: "Thanh toán qua cổng VNPay",
-    icon: <CreditCard size={20} color="#0066CC" />,
-  },
-  {
-    value: "Momo",
-    label: "Ví MoMo",
-    desc: "Thanh toán qua ví điện tử MoMo",
-    icon: <Smartphone size={20} color="#A50064" />,
-  },
-  {
-    value: "BankTransfer",
-    label: "Chuyển khoản ngân hàng",
-    desc: "Chuyển khoản qua tài khoản ngân hàng",
-    icon: <Building2 size={20} color="#002c4b" />,
+    value: "ZaloPay",
+    label: "Ví ZaloPay",
+    desc: "Thanh toán qua ví điện tử ZaloPay / Quét mã QR",
+    icon: <Smartphone size={20} color="#0068FF" />,
   },
 ];
 
@@ -142,7 +133,7 @@ const Checkout = () => {
   const discountAmount = locationState?.discountAmount || 0;
 
   const [paymentMethod, setPaymentMethod] =
-    useState<"COD" | "VNPay" | "Momo" | "BankTransfer">("COD");
+    useState<"COD" | "ZaloPay">("COD");
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
@@ -164,7 +155,7 @@ const Checkout = () => {
     if (items.length === 0) {
       dispatch(fetchCart());
     }
-  }, [isAuthenticated, dispatch]);
+  }, [isAuthenticated, dispatch, items.length, navigate]);
 
   // Loc chi nhung san pham da chon o trang Cart
   const checkoutItems = selectedIds.length > 0
@@ -177,7 +168,7 @@ const Checkout = () => {
     return sum + price * item.qty;
   }, 0);
 
-  const shippingFee = subtotal >= 2000000 ? 0 : 30000;
+  const shippingFee = calculateShippingFee(subtotal);
   const finalTotal = subtotal - discountAmount + shippingFee;
   const totalItems = checkoutItems.reduce((sum, item) => sum + item.qty, 0);
 
@@ -204,7 +195,7 @@ const Checkout = () => {
     }
 
     // Kiểm tra phương thức thanh toán có được hỗ trợ hay không trước khi tạo đơn hàng
-    if (paymentMethod !== "COD" && paymentMethod !== "VNPay") {
+    if (paymentMethod !== "COD" && paymentMethod !== "ZaloPay") {
       toast.error("Phương thức thanh toán này chưa được hỗ trợ");
       return;
     }
@@ -236,13 +227,13 @@ const Checkout = () => {
         return;
       }
 
-      if (paymentMethod === "VNPay") {
-        const paymentResult = await paymentService.createVNPayUrl(
+      if (paymentMethod === "ZaloPay") {
+        const paymentResult = await paymentService.createZaloPayUrl(
           result.data._id
         );
 
         if (!paymentResult.paymentUrl) {
-          toast.error("Không tạo được liên kết thanh toán VNPay");
+          toast.error("Không tạo được liên kết thanh toán ZaloPay");
           return;
         }
 
@@ -591,7 +582,7 @@ const Checkout = () => {
                     value={paymentMethod}
                     onChange={(e) =>
                       setPaymentMethod(
-                        e.target.value as "COD" | "VNPay" | "Momo" | "BankTransfer"
+                        e.target.value as "COD" | "ZaloPay"
                       )
                     }
                   >
@@ -648,9 +639,9 @@ const Checkout = () => {
                   </RadioGroup>
                 </FormControl>
 
-                {paymentMethod === "VNPay" && (
+                {paymentMethod === "ZaloPay" && (
                   <Alert severity="info" sx={{ mt: 2 }}>
-                    Bạn sẽ được chuyển sang cổng thanh toán VNPay sau khi đặt hàng.
+                    Bạn sẽ được chuyển sang cổng thanh toán ZaloPay (quét mã QR hoặc ví ZaloPay) sau khi đặt hàng.
                   </Alert>
                 )}
               </Box>
@@ -683,6 +674,8 @@ const Checkout = () => {
                           component="img"
                           src={getImageUrl(item.productId.image?.[0])}
                           alt={item.productId.name}
+                          onError={useImageFallback}
+                          loading="lazy"
                           sx={{
                             width: 56,
                             height: 56,
@@ -853,8 +846,7 @@ const Checkout = () => {
                 sx={{ border: "1px dashed #eee", borderRadius: 2, p: 2.5, bgcolor: "#fafafa" }}
               >
                 <Typography variant="body2" sx={{ color: "#64748b", lineHeight: 1.6 }}>
-                  Bằng việc bấm <b>Đặt hàng</b>, bạn đồng ý với điều khoản và chính sách
-                  của chúng tôi.
+                  Bằng việc bấm <b>Đặt hàng</b>, bạn đồng ý với <MuiLink component={RouterLink} to="/policies/terms">điều khoản mua hàng</MuiLink> và <MuiLink component={RouterLink} to="/policies/privacy">chính sách bảo mật</MuiLink>.
                 </Typography>
               </Paper>
             </Box>

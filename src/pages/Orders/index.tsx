@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box, Container, Typography, Button, Paper, Chip,
@@ -41,7 +41,7 @@ const T = {
 };
 
 const getImageUrl = (imagePath?: string) => {
-  if (!imagePath) return "/placeholder.png";
+  if (!imagePath) return "/product-placeholder.svg";
   if (imagePath.startsWith("http")) return imagePath;
   const baseUrl = API_URL.replace(/\/+$/, "");
   const path = imagePath.startsWith("/") ? imagePath : `/${imagePath}`;
@@ -103,9 +103,7 @@ const STATUS_CONFIG: Record<
 
 const PAYMENT_LABEL: Record<string, string> = {
   COD: "Thanh toán khi nhận hàng (COD)",
-  VNPay: "VNPay Online",
-  Momo: "MoMo Pay",
-  BankTransfer: "Chuyển khoản ngân hàng",
+  ZaloPay: "Ví ZaloPay",
 };
 
 const getPaymentBadge = (order: Order) => {
@@ -145,7 +143,10 @@ const getPaymentBadge = (order: Order) => {
   }
 
   return {
-    label: "Chưa thanh toán VNPay",
+    label:
+      order.paymentMethod === "ZaloPay"
+        ? "Chưa thanh toán ZaloPay"
+        : "Chưa thanh toán Online",
     bg: "rgba(217,119,6,0.1)",
     color: "#D97706",
   };
@@ -187,7 +188,7 @@ const OrderPayButton = ({
     e.stopPropagation();
     try {
       setIsPaying(true);
-      const res = await paymentService.createVNPayUrl(order._id);
+      const res = await paymentService.createZaloPayUrl(order._id);
       if (res.status === "OK" && res.paymentUrl) {
         window.location.href = res.paymentUrl;
       } else {
@@ -931,15 +932,7 @@ const Orders = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-    loadOrders();
-  }, [isAuthenticated]);
-
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     try {
       setLoading(true);
       const res = await orderService.getMyOrders();
@@ -949,7 +942,15 @@ const Orders = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    loadOrders();
+  }, [isAuthenticated, loadOrders, navigate]);
 
   const filteredOrders =
     activeTab === "all" ? orders : orders.filter((o) => o.status === activeTab);

@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import authService from "../../services/authService";
+import { clearAgentChatStorage } from "../../utils/chatStorage";
 import type {
   AuthUser,
   LoginPayload,
@@ -72,6 +73,7 @@ export const loginUser = createAsyncThunk<
 >("auth/login", async (payload, { rejectWithValue }) => {
   try {
     const data = await authService.login(payload);
+    clearAgentChatStorage();
     localStorage.setItem("accessToken", data.accessToken);
     localStorage.setItem("user", JSON.stringify(data.user));
     return {
@@ -113,6 +115,7 @@ export const logoutUser = createAsyncThunk<
   }
   localStorage.removeItem("accessToken");
   localStorage.removeItem("user");
+  clearAgentChatStorage();
 });
 
 /** Lấy profile user (bao gồm avatar) */
@@ -154,6 +157,7 @@ const authSlice = createSlice({
       state.error = null;
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
+      clearAgentChatStorage();
     },
     clearAuthError: (state) => {
       state.error = null;
@@ -202,6 +206,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         localStorage.removeItem("accessToken");
         localStorage.removeItem("user");
+        clearAgentChatStorage();
       });
 
     // Logout Thunk

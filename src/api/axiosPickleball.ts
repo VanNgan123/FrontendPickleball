@@ -2,6 +2,7 @@ import axios, {
   type AxiosError,
   type InternalAxiosRequestConfig,
 } from "axios";
+import { clearAgentChatStorage } from "../utils/chatStorage";
 
 interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
@@ -78,6 +79,7 @@ axiosPickleball.interceptors.response.use(
       } catch (refreshError) {
         localStorage.removeItem("accessToken");
         localStorage.removeItem("user");
+        clearAgentChatStorage();
 
         if (window.location.pathname !== "/login") {
           window.location.replace("/login");

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box, Container, Typography, Button, IconButton,
@@ -19,8 +19,10 @@ import {
 import couponService from "../../services/couponService";
 import type { CalculateDiscountResult } from "../../services/couponService";
 import MainLayout from "../../layout/MainLayout/MainLayout";
+import { FREE_SHIPPING_THRESHOLD, RETURN_WINDOW_DAYS, calculateShippingFee } from "../../config/commerce";
 import { CartSkeleton } from "../../components/Skeletons";
 import storeImg from "../../assets/about/store.png";
+import { useImageFallback } from "../../utils/image";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -142,8 +144,21 @@ const Cart = () => {
   const { items, loading, actionLoading, error: cartError } = useSelector((s: RootState) => s.cart);
   const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
 
-  const validItems = items.filter((item) => item.productId != null);
-  const hasInvalidItems = items.some((item) => !item.productId);
+  const validItems = useMemo(
+    () => items.filter((item) => item.productId != null),
+    [items]
+  );
+  const hasInvalidItems = useMemo(
+    () => items.some((item) => !item.productId),
+    [items]
+  );
+  const cartSignature = useMemo(
+    () =>
+      validItems
+        .map((item) => `${item.productId?._id}:${item.qty}`)
+        .join("|"),
+    [validItems]
+  );
 
   const [couponCode, setCouponCode] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
@@ -160,18 +175,16 @@ const Cart = () => {
   // Select all items automatically when cart items load
   useEffect(() => {
     setSelectedIds(validItems.map((i) => i.productId?._id).filter(Boolean) as string[]);
-  }, [items]);
+  }, [validItems]);
 
   // Reset coupon calculation when items list changes
   useEffect(() => {
-    if (couponResult) {
-      setCouponResult(null);
-      setCouponError(null);
-    }
-  }, [items]);
+    setCouponResult((current) => (current ? null : current));
+    setCouponError(null);
+  }, [cartSignature]);
 
   const img = (p?: string) => {
-    if (!p) return "https://via.placeholder.com/120x120?text=No+Image";
+    if (!p) return "/product-placeholder.svg";
     if (p.startsWith("http")) return p;
     const b = API_URL.replace(/\/+$/, "");
     return `${b}${p.startsWith("/") ? p : "/" + p}`.replace(/\\/g, "/");
@@ -254,7 +267,7 @@ const Cart = () => {
   const selectedItems = validItems.filter((i) => selectedIds.includes(i.productId?._id));
   const subtotal = selectedItems.reduce((s, i) => s + (i.productId?.salePrice || i.productId?.price || 0) * i.qty, 0);
   const discount = couponResult?.discountAmount || 0;
-  const shipping = subtotal >= 2000000 ? 0 : subtotal > 0 ? 30000 : 0;
+  const shipping = calculateShippingFee(subtotal);
   const total = subtotal - discount + shipping;
   const totalQty = selectedItems.reduce((s, i) => s + i.qty, 0);
 
@@ -524,6 +537,8 @@ const Cart = () => {
                             component="img"
                             src={img(p.image?.[0])}
                             alt={p.name}
+                            onError={useImageFallback}
+                            loading="lazy"
                             sx={{ maxWidth: "85%", maxHeight: "85%", objectFit: "contain" }}
                           />
                         </Box>
@@ -842,13 +857,13 @@ const Cart = () => {
                   {shipping > 0 && subtotal > 0 && (
                     <Box sx={{ bgcolor: T.orangeBg, borderRadius: 3, p: 2, mt: 2, mb: 1, border: "1px solid rgba(234,88,12,0.12)" }}>
                       <Typography sx={{ color: T.orangeText, fontSize: "0.78rem", fontWeight: 700, display: "flex", alignItems: "center", gap: 0.5 }}>
-                        🚚 Mua thêm <b>{fmt(2000000 - subtotal)}</b> để được miễn phí vận chuyển
+                        🚚 Mua thêm <b>{fmt(FREE_SHIPPING_THRESHOLD - subtotal)}</b> để được miễn phí vận chuyển
                       </Typography>
                       {/* Custom progress bar */}
                       <Box sx={{ mt: 1, height: 6, bgcolor: "#FED7AA", borderRadius: 99, overflow: "hidden" }}>
                         <Box
                           sx={{
-                            width: `${Math.min((subtotal / 2000000) * 100, 100)}%`,
+                            width: `${Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100)}%`,
                             height: "100%",
                             bgcolor: T.orangeText,
                             borderRadius: 99,
@@ -911,7 +926,7 @@ const Cart = () => {
                     {[
                       { icon: <Truck size={15} />, t: "Giao hàng toàn quốc nhanh chóng" },
                       { icon: <Shield size={15} />, t: "Cam kết chính hãng 100% bảo hành đầy đủ" },
-                      { icon: <PackageCheck size={15} />, t: "Hỗ trợ đổi trả miễn phí trong 30 ngày" },
+                      { icon: <PackageCheck size={15} />, t: `Hỗ trợ đổi trả trong ${RETURN_WINDOW_DAYS} ngày theo chính sách` },
                     ].map((b, i) => (
                       <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                         <Box sx={{ color: T.teal, display: "flex", flexShrink: 0 }}>{b.icon}</Box>

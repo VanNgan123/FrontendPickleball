@@ -2,12 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Box, Container, Typography, Button, Chip, Divider, CircularProgress,
-  Paper, IconButton, Rating, Grid, Dialog, DialogContent, Checkbox, FormControlLabel,
+  Paper, IconButton, Rating, Grid, Dialog, DialogContent,
 } from "@mui/material";
 import {
   ChevronLeft, ChevronRight, ShoppingCart, Heart, Share2,
   Minus, Plus, Star, Truck, Shield, RotateCcw, CheckCircle,
-  Camera, Video, X,
+  Camera, X, MessageCircle,
 } from "lucide-react";
 
 import MainLayout from "../../layout/MainLayout/MainLayout";
@@ -19,6 +19,13 @@ import {
 } from "../../store/slices/productSlice";
 import { addToCart } from "../../store/slices/cartSlice";
 import reviewService from "../../services/reviewService";
+import wishlistService from "../../services/wishlistService";
+import toast from "react-hot-toast";
+import type { ProductRatingSummary, ProductReview } from "../../types";
+import ProductImage from "../../components/ProductImage";
+import { RETURN_WINDOW_DAYS } from "../../config/commerce";
+import { openAgentChat } from "../../utils/chatStorage";
+import { useImageFallback } from "../../utils/image";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -36,7 +43,6 @@ const ProductDetail = () => {
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState("Hồng");
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [reviewRating, setReviewRating] = useState<number | null>(null);
@@ -44,7 +50,11 @@ const ProductDetail = () => {
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [selectedStarFilter, setSelectedStarFilter] = useState<string>("all");
-  const colors = ["Hồng", "Trắng", "Xanh Dương", "Xanh lá", "Đen", "Đỏ"];
+  const [reviewImages, setReviewImages] = useState<File[]>([]);
+  const [reviews, setReviews] = useState<ProductReview[]>([]);
+  const [ratingSummary, setRatingSummary] = useState<ProductRatingSummary>({ avgRating: 0, totalReviews: 0 });
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -52,6 +62,46 @@ const ProductDetail = () => {
     dispatch(fetchAllProducts({ limit: 1000 }));
     return () => { dispatch(clearCurrentProduct()); };
   }, [id, dispatch]);
+
+  useEffect(() => {
+    if (!id) return;
+    Promise.all([reviewService.getProductReviews(id), reviewService.getProductRating(id)])
+      .then(([reviewResponse, ratingResponse]) => {
+        setReviews(reviewResponse.data || []);
+        setRatingSummary(ratingResponse.data || { avgRating: 0, totalReviews: 0 });
+      })
+      .catch(() => {
+        setReviews([]);
+        setRatingSummary({ avgRating: 0, totalReviews: 0 });
+      });
+  }, [id]);
+
+  useEffect(() => {
+    if (!product) return;
+    const previousTitle = document.title;
+    const descriptionMeta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    const previousDescription = descriptionMeta?.content;
+    document.title = `${product.name} | Pickleball Bạch Đằng`;
+    if (descriptionMeta) {
+      descriptionMeta.content = (product.description || `${product.name} chính hãng tại Pickleball Bạch Đằng.`).slice(0, 160);
+    }
+    return () => {
+      document.title = previousTitle;
+      if (descriptionMeta && previousDescription) descriptionMeta.content = previousDescription;
+    };
+  }, [product]);
+
+  useEffect(() => {
+    let active = true;
+    if (!id || !isAuthenticated) {
+      setIsFavorite(false);
+      return () => { active = false; };
+    }
+    wishlistService.checkProduct(id)
+      .then((response) => { if (active) setIsFavorite(response.data.inWishlist); })
+      .catch(() => { if (active) setIsFavorite(false); });
+    return () => { active = false; };
+  }, [id, isAuthenticated]);
 
   useEffect(() => {
     const elements = Array.from(document.querySelectorAll("[data-reveal]"));
@@ -74,7 +124,7 @@ const ProductDetail = () => {
   }, [product?._id]);
 
   const getImageUrl = (imagePath?: string) => {
-    if (!imagePath) return "https://via.placeholder.com/600x600?text=No+Image";
+    if (!imagePath) return "/product-placeholder.svg";
     if (imagePath.startsWith("http")) return imagePath;
     const baseUrl = API_URL.replace(/\/+$/, "");
     const path = imagePath.startsWith("/") ? imagePath : `/${imagePath}`;
@@ -91,7 +141,20 @@ const ProductDetail = () => {
     similarRef.current?.scrollBy({ left: dir === "left" ? -300 : 300, behavior: "smooth" });
   };
 
-  const similarProducts = products.filter((p) => p._id !== id).slice(0, 6);
+  const productCategoryIds = new Set(
+    (product?.categories || []).map((category) => typeof category === "object" ? category._id : category)
+  );
+  const similarProducts = products
+    .filter((candidate) => candidate._id !== id)
+    .map((candidate) => ({
+      candidate,
+      score:
+        (candidate.brand && candidate.brand === product?.brand ? 2 : 0) +
+        (candidate.categories?.some((category) => productCategoryIds.has(typeof category === "object" ? category._id : category)) ? 3 : 0),
+    }))
+    .sort((left, right) => right.score - left.score)
+    .slice(0, 6)
+    .map(({ candidate }) => candidate);
 
   // Handler: Thêm vào giỏ
   const handleAddToCart = async () => {
@@ -125,6 +188,31 @@ const ProductDetail = () => {
     }
   };
 
+  const handleToggleFavorite = async () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    if (!product?._id || favoriteLoading) return;
+    try {
+      setFavoriteLoading(true);
+      if (isFavorite) {
+        await wishlistService.removeFromWishlist(product._id);
+        setIsFavorite(false);
+        toast.success("Đã xóa khỏi danh sách yêu thích");
+      } else {
+        await wishlistService.addToWishlist(product._id);
+        setIsFavorite(true);
+        toast.success("Đã thêm vào danh sách yêu thích");
+      }
+    } catch (error) {
+      const apiError = error as { response?: { data?: { message?: string } } };
+      toast.error(apiError.response?.data?.message || "Không thể cập nhật danh sách yêu thích");
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
+
   const handleSubmitReview = async () => {
     if (!product?._id) return;
     if (!reviewRating) {
@@ -143,15 +231,31 @@ const ProductDetail = () => {
         productId: product._id,
         rating: reviewRating,
         comment: reviewText.trim(),
+        images: reviewImages,
       });
       setReviewText("");
       setReviewRating(null);
+      setReviewImages([]);
       setShowReviewDialog(false);
+      toast.success("Đánh giá đã được gửi và đang chờ duyệt");
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } }; message?: string };
       setReviewError(err.response?.data?.message || err.message || "Gui danh gia that bai.");
     } finally {
       setReviewSubmitting(false);
+    }
+  };
+
+  const handleShare = async () => {
+    const shareData = { title: product?.name || "Sản phẩm Pickleball", url: window.location.href };
+    try {
+      if (navigator.share) await navigator.share(shareData);
+      else {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success("Đã sao chép liên kết sản phẩm");
+      }
+    } catch {
+      // Người dùng đóng hộp thoại chia sẻ thì không cần báo lỗi.
     }
   };
 
@@ -187,6 +291,15 @@ const ProductDetail = () => {
 
   const images = product.image && product.image.length > 0 ? product.image : [];
   const saving = product.salePrice ? product.price - product.salePrice : 0;
+  const starCounts = [5, 4, 3, 2, 1].map((star) => ({
+    star,
+    count: reviews.filter((review) => review.rating === star).length,
+  }));
+  const filteredReviews = reviews.filter((review) => {
+    if (selectedStarFilter === "all") return true;
+    if (selectedStarFilter === "photo") return review.images?.length > 0;
+    return review.rating === Number(selectedStarFilter);
+  });
 
   return (
     <>
@@ -230,7 +343,7 @@ const ProductDetail = () => {
                 <Box
                   sx={{
                     display: { xs: "block", md: "grid" },
-                    gridTemplateColumns: { md: "88px 1fr" },
+                    gridTemplateColumns: { md: images.length > 1 ? "88px minmax(0, 1fr)" : "minmax(0, 1fr)" },
                     gap: 2,
                     alignItems: "start",
                   }}
@@ -264,6 +377,8 @@ const ProductDetail = () => {
                             component="img"
                             src={getImageUrl(img)}
                             alt={`Thumb ${idx + 1}`}
+                            onError={useImageFallback}
+                            loading="lazy"
                             sx={{ width: "100%", height: "100%", objectFit: "contain" }}
                           />
                         </Box>
@@ -299,8 +414,9 @@ const ProductDetail = () => {
                       />
                       <Box
                         component="img"
-                        src={images.length > 0 ? getImageUrl(images[selectedImage]) : "https://via.placeholder.com/600x600?text=No+Image"}
+                        src={images.length > 0 ? getImageUrl(images[selectedImage]) : "/product-placeholder.svg"}
                         alt={product.name}
+                        onError={useImageFallback}
                         sx={{
                           maxWidth: "100%",
                           maxHeight: "100%",
@@ -328,10 +444,19 @@ const ProductDetail = () => {
                     {product.name}
                   </Typography>
                   <Box sx={{ display: "flex", gap: 1 }}>
-                    <IconButton sx={{ bgcolor: "#f1f5f9", "&:hover": { bgcolor: "#e2e8f0" } }}>
-                      <Heart size={18} />
+                    <IconButton
+                      aria-label={isFavorite ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
+                      onClick={() => void handleToggleFavorite()}
+                      disabled={favoriteLoading}
+                      sx={{
+                        bgcolor: isFavorite ? "#fff1f2" : "#f1f5f9",
+                        color: isFavorite ? "#e11d48" : "#0f172a",
+                        "&:hover": { bgcolor: isFavorite ? "#ffe4e6" : "#e2e8f0" },
+                      }}
+                    >
+                      {favoriteLoading ? <CircularProgress size={18} /> : <Heart size={18} fill={isFavorite ? "currentColor" : "none"} />}
                     </IconButton>
-                    <IconButton sx={{ bgcolor: "#f1f5f9", "&:hover": { bgcolor: "#e2e8f0" } }}>
+                    <IconButton aria-label="Chia sẻ sản phẩm" onClick={() => void handleShare()} sx={{ bgcolor: "#f1f5f9", "&:hover": { bgcolor: "#e2e8f0" } }}>
                       <Share2 size={18} />
                     </IconButton>
                   </Box>
@@ -339,14 +464,16 @@ const ProductDetail = () => {
 
                 {/* Rating */}
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-                  <Rating value={0} readOnly size="small" />
-                  <Typography variant="body2" sx={{ color: "#888" }}>(đánh giá) | Đã bán 0</Typography>
+                  <Rating value={ratingSummary.avgRating} precision={0.1} readOnly size="small" />
+                  <Typography variant="body2" sx={{ color: "#64748b" }}>
+                    {ratingSummary.avgRating.toFixed(1)} ({ratingSummary.totalReviews} đánh giá) | Đã bán {product.soldCount || 0}
+                  </Typography>
                 </Box>
 
                 {/* Price Box */}
                 <Box
                   sx={{
-                    background: "linear-gradient(120deg, #0f172a, #1d4ed8)",
+                    background: "linear-gradient(120deg, #0F172A, #0F766E)",
                     borderRadius: 3,
                     p: 2.5,
                     color: "white",
@@ -363,9 +490,11 @@ const ProductDetail = () => {
                       opacity: 0.6,
                     }}
                   />
-                  <Typography variant="body2">Giá khuyến mãi:</Typography>
+                  <Typography variant="body2">
+                    {product.salePrice ? "Giá khuyến mãi:" : "Giá sản phẩm:"}
+                  </Typography>
                   <Box sx={{ display: "flex", alignItems: "baseline", gap: 2 }}>
-                    <Typography variant="h4" sx={{ fontWeight: "bold", color: "#f97316" }}>
+                    <Typography variant="h4" sx={{ fontWeight: "bold", color: "#BEF264" }}>
                       {formatPrice(product.salePrice || product.price)}
                     </Typography>
                     {product.salePrice && (
@@ -390,7 +519,7 @@ const ProductDetail = () => {
                     <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start", mb: 1 }}>
                       <CheckCircle size={16} color="#25D366" style={{ marginTop: 3, flexShrink: 0 }} />
                       <Typography variant="body2" sx={{ color: "#555" }}>
-                        Freeship toàn quốc đơn hàng trên 2.000.000 vnđ khi thanh toán trước
+                        Miễn phí vận chuyển toàn quốc cho đơn từ 2.000.000đ khi thanh toán trước
                       </Typography>
                     </Box>
                     <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
@@ -399,29 +528,6 @@ const ProductDetail = () => {
                         Bảo hành chính hãng 12 tháng
                       </Typography>
                     </Box>
-                  </Box>
-                </Box>
-
-                {/* Colors */}
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-                  <Typography variant="body2" sx={{ fontWeight: "bold", width: 60, color: "#1a1a1a" }}>Màu sắc</Typography>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                    {colors.map((color) => (
-                      <Button
-                        key={color}
-                        variant={selectedColor === color ? "outlined" : "text"}
-                        onClick={() => setSelectedColor(color)}
-                        sx={{
-                          border: "1px solid",
-                          borderColor: selectedColor === color ? "primary.main" : "#e2e8f0",
-                          color: selectedColor === color ? "primary.main" : "#555",
-                          bgcolor: selectedColor === color ? "rgba(230,0,35,0.05)" : "transparent",
-                          minWidth: "auto", px: 2, py: 0.5,
-                        }}
-                      >
-                        {color}
-                      </Button>
-                    ))}
                   </Box>
                 </Box>
 
@@ -457,7 +563,14 @@ const ProductDetail = () => {
                       fullWidth
                       disabled={product.stock === 0 || cartActionLoading}
                       onClick={handleBuyNow}
-                      sx={{ py: 1.5, fontWeight: 800, bgcolor: "#e11d48", "&:hover": { bgcolor: "#be123c" } }}
+                      sx={{
+                        py: 1.5,
+                        fontWeight: 850,
+                        bgcolor: "#84CC16",
+                        color: "#0F172A",
+                        boxShadow: "0 10px 24px rgba(132,204,22,0.24)",
+                        "&:hover": { bgcolor: "#65A30D", color: "#fff" },
+                      }}
                     >
                       {cartActionLoading ? <CircularProgress size={22} color="inherit" /> : "MUA NGAY"}
                     </Button>
@@ -496,24 +609,14 @@ const ProductDetail = () => {
                   <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "#f8fafc", border: "1px solid #e2e8f0", display: "flex", gap: 1.5, alignItems: "center" }}>
                     <RotateCcw size={18} color="#f97316" />
                     <Typography variant="caption" sx={{ color: "#334155", fontWeight: 600 }}>
-                      Đổi trả trong 7 ngày
+                      Đổi trả trong {RETURN_WINDOW_DAYS} ngày
                     </Typography>
                   </Box>
                 </Box>
 
-                {/* Contact Buttons */}
-                <Grid container spacing={2}>
-                  <Grid size={6}>
-                    <Button variant="outlined" fullWidth sx={{ color: "#1a1a1a", borderColor: "#ccc" }}>
-                      Tư vấn qua <Box component="span" sx={{ color: "#3b82f6", fontWeight: "bold", ml: 0.5 }}>Zalo</Box>
-                    </Button>
-                  </Grid>
-                  <Grid size={6}>
-                    <Button variant="outlined" fullWidth sx={{ color: "#1a1a1a", borderColor: "#ccc" }}>
-                      Tư vấn qua <Box component="span" sx={{ color: "#2563eb", fontWeight: "bold", ml: 0.5 }}>Facebook</Box>
-                    </Button>
-                  </Grid>
-                </Grid>
+                <Button variant="outlined" fullWidth startIcon={<MessageCircle size={18} />} onClick={openAgentChat}>
+                  Nhờ trợ lý tư vấn sản phẩm này
+                </Button>
               </Grid>
             </Grid>
           </Paper>
@@ -624,69 +727,36 @@ const ProductDetail = () => {
               </Box>
               <Button
                 variant="contained"
-                onClick={() => setShowReviewDialog(true)}
+                onClick={() => isAuthenticated ? setShowReviewDialog(true) : navigate("/login")}
                 sx={{ bgcolor: "#1d4ed8", color: "white", fontWeight: 700, "&:hover": { bgcolor: "#1e40af" } }}
               >
                 VIẾT ĐÁNH GIÁ
               </Button>
             </Box>
 
-            <Paper
-              elevation={0}
-              sx={{
-                border: "1px solid #e2e8f0",
-                borderRadius: 3,
-                p: { xs: 2.5, md: 3 },
-                display: "grid",
-                gridTemplateColumns: { xs: "1fr", md: "200px 1fr 220px" },
-                gap: 3,
-                mb: 3,
-                bgcolor: "#fff",
-              }}
-            >
+            <Paper elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: { xs: 2.5, md: 3 }, display: "grid", gridTemplateColumns: { xs: "1fr", md: "200px 1fr 220px" }, gap: 3, mb: 3, bgcolor: "#fff" }}>
               <Box sx={{ display: "flex", flexDirection: "column", alignItems: { xs: "flex-start", md: "center" }, gap: 1 }}>
-                <Box sx={{ display: "flex", alignItems: "baseline", gap: 1 }}>
-                  <Typography variant="h3" sx={{ fontWeight: 800, color: "#f59e0b" }}>0.0</Typography>
-                  <Rating value={1} max={1} readOnly sx={{ color: "#f59e0b" }} />
-                </Box>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b" }}>
-                  ĐÁNH GIÁ TRUNG BÌNH
-                </Typography>
-                <Typography variant="caption" sx={{ color: "#94a3b8" }}>0 đánh giá</Typography>
+                <Typography variant="h3" sx={{ fontWeight: 800, color: "#f59e0b" }}>{ratingSummary.avgRating.toFixed(1)}</Typography>
+                <Rating value={ratingSummary.avgRating} precision={0.1} readOnly sx={{ color: "#f59e0b" }} />
+                <Typography variant="caption" sx={{ color: "#64748b" }}>{ratingSummary.totalReviews} đánh giá đã duyệt</Typography>
               </Box>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                {[5, 4, 3, 2, 1].map((star) => (
-                  <Box key={star} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Typography variant="body2" sx={{ width: 30, color: "#1a1a1a" }}>{star} ★</Typography>
-                    <Box sx={{ flexGrow: 1, height: 8, bgcolor: "#f1f5f9", borderRadius: 4, overflow: "hidden" }}>
-                      <Box sx={{ width: "0%", height: "100%", bgcolor: "#1d4ed8" }} />
+                {starCounts.map(({ star, count }) => {
+                  const percent = ratingSummary.totalReviews ? Math.round((count / ratingSummary.totalReviews) * 100) : 0;
+                  return (
+                    <Box key={star} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography variant="body2" sx={{ width: 30 }}>{star} ★</Typography>
+                      <Box sx={{ flexGrow: 1, height: 8, bgcolor: "#f1f5f9", borderRadius: 4, overflow: "hidden" }}>
+                        <Box sx={{ width: `${percent}%`, height: "100%", bgcolor: "#f59e0b" }} />
+                      </Box>
+                      <Typography variant="body2" sx={{ width: 64, color: "#64748b", textAlign: "right" }}>{percent}% ({count})</Typography>
                     </Box>
-                    <Typography variant="body2" sx={{ width: 110, color: "#1d4ed8", textAlign: "right" }}>0% | 0</Typography>
-                  </Box>
-                ))}
+                  );
+                })}
               </Box>
-              <Box
-                sx={{
-                  borderRadius: 2,
-                  border: "1px dashed #cbd5f5",
-                  p: 2,
-                  bgcolor: "#f8fafc",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 1.5,
-                  justifyContent: "center",
-                }}
-              >
-                <Typography variant="body2" sx={{ color: "#475569", fontWeight: 600 }}>
-                  Mời bạn cho 1 đánh giá nhé!
-                </Typography>
-                <Button
-                  variant="outlined"
-                  onClick={() => setShowReviewDialog(true)}
-                  sx={{ borderColor: "#1d4ed8", color: "#1d4ed8", fontWeight: 700, "&:hover": { bgcolor: "#1d4ed8", color: "white" } }}
-                >
-                  ĐÁNH GIÁ NGAY
-                </Button>
+              <Box sx={{ borderRadius: 2, border: "1px dashed #cbd5f5", p: 2, bgcolor: "#f8fafc", display: "flex", flexDirection: "column", gap: 1.5, justifyContent: "center" }}>
+                <Typography variant="body2" sx={{ color: "#475569", fontWeight: 600 }}>Chỉ tài khoản đã nhận hàng thành công mới có thể đánh giá.</Typography>
+                <Button variant="outlined" onClick={() => isAuthenticated ? setShowReviewDialog(true) : navigate("/login")}>Đánh giá sản phẩm</Button>
               </Box>
             </Paper>
 
@@ -706,11 +776,6 @@ const ProductDetail = () => {
                     minWidth: "auto",
                   }}>{star} ★</Button>
               ))}
-              <Button variant={selectedStarFilter === "video" ? "contained" : "outlined"} size="small"
-                onClick={() => setSelectedStarFilter("video")}
-                sx={{
-                  ...(selectedStarFilter === "video" ? { bgcolor: "#1d4ed8", color: "white" } : { color: "#1a1a1a", borderColor: "#e2e8f0", bgcolor: "white" }),
-                }}>Có video</Button>
               <Button variant={selectedStarFilter === "photo" ? "contained" : "outlined"} size="small"
                 onClick={() => setSelectedStarFilter("photo")}
                 sx={{
@@ -718,7 +783,35 @@ const ProductDetail = () => {
                 }}>Có ảnh</Button>
             </Box>
 
-            <Typography variant="body2" sx={{ color: "#888", fontStyle: "italic" }}>Chưa có đánh giá nào.</Typography>
+            {filteredReviews.length === 0 ? (
+              <Typography variant="body2" sx={{ color: "#64748b", fontStyle: "italic" }}>Chưa có đánh giá phù hợp.</Typography>
+            ) : (
+              <Box sx={{ display: "grid", gap: 2 }}>
+                {filteredReviews.map((review) => (
+                  <Paper key={review._id} variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, mb: 1 }}>
+                      <Box>
+                        <Typography sx={{ fontWeight: 800 }}>{review.userId?.name || "Khách hàng"}</Typography>
+                        <Rating value={review.rating} readOnly size="small" />
+                      </Box>
+                      <Typography variant="caption" color="text.secondary">{new Date(review.createdAt).toLocaleDateString("vi-VN")}</Typography>
+                    </Box>
+                    <Typography sx={{ whiteSpace: "pre-wrap", color: "#334155" }}>{review.comment}</Typography>
+                    {review.images?.length > 0 && (
+                      <Box sx={{ display: "flex", gap: 1, mt: 1.5, flexWrap: "wrap" }}>
+                        {review.images.map((image) => <ProductImage key={image} src={image} alt={`Ảnh đánh giá của ${review.userId?.name || "khách hàng"}`} sx={{ width: 84, height: 84, objectFit: "cover", borderRadius: 1.5, border: "1px solid #e2e8f0" }} />)}
+                      </Box>
+                    )}
+                    {review.adminReply?.text && (
+                      <Box sx={{ mt: 1.5, p: 1.5, bgcolor: "#f0fdfa", borderRadius: 1.5 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 800, color: "#0F766E" }}>PHẢN HỒI TỪ CỬA HÀNG</Typography>
+                        <Typography variant="body2">{review.adminReply.text}</Typography>
+                      </Box>
+                    )}
+                  </Paper>
+                ))}
+              </Box>
+            )}
           </Box>
 
           {/* Review Dialog */}
@@ -748,11 +841,15 @@ const ProductDetail = () => {
               {/* Upload + char count */}
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 1, mb: 3 }}>
                 <Box sx={{ display: "flex", gap: 2 }}>
-                  <Button startIcon={<Camera size={16} />} size="small" sx={{ color: "#0ea5e9", fontWeight: 600, textTransform: "none" }}>
-                    Chọn ảnh
-                  </Button>
-                  <Button startIcon={<Video size={16} />} size="small" sx={{ color: "#E60023", fontWeight: 600, textTransform: "none" }}>
-                    Chọn video
+                  <Button component="label" startIcon={<Camera size={16} />} size="small" sx={{ color: "#0F766E", fontWeight: 700 }}>
+                    Chọn ảnh ({reviewImages.length}/5)
+                    <input
+                      hidden
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      onChange={(event) => setReviewImages(Array.from(event.target.files || []).slice(0, 5))}
+                    />
                   </Button>
                 </Box>
                 <Typography variant="caption" sx={{ color: "#0ea5e9" }}>
@@ -785,24 +882,6 @@ const ProductDetail = () => {
                 </Box>
               </Box>
 
-              <Divider sx={{ mb: 2 }} />
-
-              {/* Form fields */}
-              <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-                <input type="text" placeholder="Họ tên*"
-                  style={{ flex: 1, padding: "10px 14px", border: "1px solid #ddd", borderRadius: 6, outline: "none", fontSize: "0.9rem" }} />
-                <input type="tel" placeholder="Số điện thoại*"
-                  style={{ flex: 1, padding: "10px 14px", border: "1px solid #ddd", borderRadius: 6, outline: "none", fontSize: "0.9rem" }} />
-                <input type="email" placeholder="Email"
-                  style={{ flex: 1, padding: "10px 14px", border: "1px solid #ddd", borderRadius: 6, outline: "none", fontSize: "0.9rem" }} />
-              </Box>
-
-              <FormControlLabel
-                control={<Checkbox size="small" sx={{ color: "#ccc" }} />}
-                label={<Typography variant="caption" sx={{ color: "#555" }}>Lưu tên của tôi, email, và trang web trong trình duyệt này cho lần bình luận kế tiếp của tôi.</Typography>}
-                sx={{ mb: 3 }}
-              />
-
               {/* Submit button */}
               <Box sx={{ display: "flex", justifyContent: "center" }}>
                 <Button
@@ -814,45 +893,11 @@ const ProductDetail = () => {
                     fontSize: "0.9rem", letterSpacing: 1, textTransform: "uppercase",
                     "&:hover": { bgcolor: "#0284c7" },
                   }}>
-                  {reviewSubmitting ? "DANG GUI..." : "GUI DANH GIA"}
+                  {reviewSubmitting ? "ĐANG GỬI..." : "GỬI ĐÁNH GIÁ"}
                 </Button>
               </Box>
             </DialogContent>
           </Dialog>
-
-          {/* Q&A Section */}
-          <Box sx={{ mb: 6 }} data-reveal className="reveal">
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 800, color: "#0f172a" }}>Hỏi đáp</Typography>
-                <Typography variant="body2" sx={{ color: "#64748b" }}>
-                  Đặt câu hỏi về sản phẩm, shop sẽ phản hồi sớm nhất.
-                </Typography>
-              </Box>
-            </Box>
-            <Paper elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: { xs: 2, md: 3 }, mb: 3, bgcolor: "#fff" }}>
-              <textarea
-                placeholder="Mời bạn tham gia thảo luận, vui lòng nhập tiếng Việt có dấu."
-                style={{ width: "100%", minHeight: 120, padding: 16, border: "1px solid #e2e8f0", outline: "none", resize: "vertical", borderRadius: 8, fontFamily: "inherit" }}
-              />
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap", mt: 2 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: "0.875rem", color: "#1a1a1a" }}>
-                    <input type="radio" name="gender" value="Anh" defaultChecked /> Anh
-                  </label>
-                  <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: "0.875rem", color: "#1a1a1a" }}>
-                    <input type="radio" name="gender" value="Chị" /> Chị
-                  </label>
-                </Box>
-                <input type="text" placeholder="Họ tên*" style={{ flexGrow: 1, minWidth: 180, padding: "10px 12px", border: "1px solid #e2e8f0", borderRadius: 6, outline: "none" }} />
-                <input type="email" placeholder="Email" style={{ flexGrow: 1, minWidth: 180, padding: "10px 12px", border: "1px solid #e2e8f0", borderRadius: 6, outline: "none" }} />
-                <Button variant="contained" sx={{ bgcolor: "#84cc16", color: "#0f172a", fontWeight: 800, minWidth: 120, boxShadow: "none", "&:hover": { bgcolor: "#65a30d" } }}>
-                  GỬI CÂU HỎI
-                </Button>
-              </Box>
-            </Paper>
-            <Typography variant="body2" sx={{ color: "#888" }}>Không có bình luận nào</Typography>
-          </Box>
 
           {/* Similar Products */}
           {similarProducts.length > 0 && (

@@ -71,15 +71,56 @@ const STATUS_ORDER = ["Pending", "Confirmed", "Shipping", "Completed", "Cancelle
 
 const PAYMENT_LABEL: Record<string, string> = {
   COD: "COD",
-  VNPay: "VNPay",
-  Momo: "MoMo",
-  BankTransfer: "Chuyển khoản",
+  ZaloPay: "ZaloPay",
 };
+
+const PAYMENT_STATUS_CONFIG: Record<
+  string,
+  { label: string; color: string; bg: string; icon: React.ReactNode }
+> = {
+  Unpaid: {
+    label: "Chưa thanh toán",
+    color: "#d97706",
+    bg: "rgba(217,119,6,0.1)",
+    icon: <Clock size={13} />,
+  },
+  Paid: {
+    label: "Đã thanh toán",
+    color: "#16a34a",
+    bg: "rgba(22,163,74,0.1)",
+    icon: <CheckCircle2 size={13} />,
+  },
+  Failed: {
+    label: "Thanh toán lỗi",
+    color: "#dc2626",
+    bg: "rgba(220,38,38,0.1)",
+    icon: <XCircle size={13} />,
+  },
+  Refunded: {
+    label: "Đã hoàn tiền",
+    color: "#7c3aed",
+    bg: "rgba(124,58,237,0.1)",
+    icon: <RefreshCw size={13} />,
+  },
+};
+
+const PAYMENT_STATUS_ORDER = ["Unpaid", "Paid", "Failed", "Refunded"];
+
 
 interface OrderItemProduct {
   _id: string;
   name?: string;
   image?: string[];
+}
+
+interface PaymentInfo {
+  provider?: string;
+  transactionId?: string;
+  bankCode?: string;
+  cardType?: string;
+  responseCode?: string;
+  transactionStatus?: string;
+  payDate?: string;
 }
 
 interface Order {
@@ -88,6 +129,9 @@ interface Order {
   items: { productId: OrderItemProduct; qty: number; price: number }[];
   shippingAddress: { fullName: string; phone: string; address: string; city: string; district: string; ward: string };
   paymentMethod: string;
+  paymentStatus?: string;
+  paidAt?: string | null;
+  paymentInfo?: PaymentInfo;
   total: number;
   status: string;
   createdAt: string;
@@ -105,24 +149,40 @@ const OrderDetailDialog = ({
   open: boolean;
   onClose: () => void;
   order: Order | null;
-  onStatusChange: (orderId: string, status: string) => Promise<void>;
+  onStatusChange: (
+    orderId: string,
+    payload: { status?: string; paymentStatus?: string }
+  ) => Promise<void>;
 }) => {
   const [updating, setUpdating] = useState(false);
   const [newStatus, setNewStatus] = useState("");
+  const [newPaymentStatus, setNewPaymentStatus] = useState("");
 
   useEffect(() => {
-    if (order) setNewStatus(order.status);
+    if (order) {
+      setNewStatus(order.status);
+      setNewPaymentStatus(order.paymentStatus || "Unpaid");
+    }
   }, [order]);
 
   if (!order) return null;
   const status = STATUS_CONFIG[order.status] || STATUS_CONFIG.Pending;
+  const paymentStatus =
+    PAYMENT_STATUS_CONFIG[order.paymentStatus || "Unpaid"] ||
+    PAYMENT_STATUS_CONFIG.Unpaid;
   const addr = order.shippingAddress;
 
   const handleUpdate = async () => {
-    if (newStatus === order.status) return;
+    const payload: { status?: string; paymentStatus?: string } = {};
+    if (newStatus !== order.status) payload.status = newStatus;
+    if (newPaymentStatus !== (order.paymentStatus || "Unpaid")) {
+      payload.paymentStatus = newPaymentStatus;
+    }
+    if (!payload.status && !payload.paymentStatus) return;
+
     try {
       setUpdating(true);
-      await onStatusChange(order._id, newStatus);
+      await onStatusChange(order._id, payload);
       onClose();
     } finally {
       setUpdating(false);
@@ -200,16 +260,60 @@ const OrderDetailDialog = ({
               </Paper>
             </Box>
 
-            <Box sx={{ minWidth: 160 }}>
+            <Box sx={{ minWidth: 220, flex: 1 }}>
               <Typography variant="caption" sx={{ fontWeight: 700, color: "#888", textTransform: "uppercase", mb: 1, display: "block" }}>
-                Thanh toán
+                Thông tin thanh toán
               </Typography>
               <Paper elevation={0} sx={{ p: 2, bgcolor: "#fafafa", border: "1px solid #f0f0f0", borderRadius: 1.5 }}>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: "#1a1a1a", mb: 0.5 }}>
-                  {PAYMENT_LABEL[order.paymentMethod] || order.paymentMethod}
-                </Typography>
-                <Typography variant="caption" sx={{ color: "#888" }}>
-                  {formatDate(order.createdAt)}
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.2 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: "#1a1a1a" }}>
+                    {PAYMENT_LABEL[order.paymentMethod] || order.paymentMethod}
+                  </Typography>
+                  <Chip
+                    icon={<Box sx={{ display: "flex", color: paymentStatus.color, ml: 0.5 }}>{paymentStatus.icon}</Box>}
+                    label={paymentStatus.label}
+                    size="small"
+                    sx={{
+                      height: 22,
+                      bgcolor: paymentStatus.bg,
+                      color: paymentStatus.color,
+                      fontWeight: 700,
+                      border: `1px solid ${paymentStatus.color}40`,
+                      "& .MuiChip-icon": { ml: 0.8 },
+                    }}
+                  />
+                </Box>
+
+                {order.paidAt ? (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.8, color: "#16a34a", mb: 1, bgcolor: "rgba(22,163,74,0.08)", p: 0.9, borderRadius: 1 }}>
+                    <CheckCircle2 size={15} />
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 800, display: "block", lineHeight: 1.2 }}>
+                        Đã thanh toán thành công
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontSize: "0.72rem", color: "#15803d" }}>
+                        Lúc: {formatDate(order.paidAt)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ) : (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.8, color: "#d97706", mb: 1, bgcolor: "rgba(217,119,6,0.08)", p: 0.9, borderRadius: 1 }}>
+                    <Clock size={15} />
+                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                      Chưa ghi nhận thanh toán
+                    </Typography>
+                  </Box>
+                )}
+
+                {order.paymentInfo?.transactionId && (
+                  <Typography variant="caption" sx={{ color: "#444", display: "block", fontSize: "0.72rem", mb: 0.5 }}>
+                    <strong>Mã GD cổng:</strong> {order.paymentInfo.transactionId}
+                    {order.paymentInfo.bankCode ? ` (${order.paymentInfo.bankCode})` : ""}
+                  </Typography>
+                )}
+
+                <Typography variant="caption" sx={{ color: "#888", display: "block", fontSize: "0.72rem" }}>
+                  <strong>Ngày đặt hàng:</strong> {formatDate(order.createdAt)}
                 </Typography>
               </Paper>
             </Box>
@@ -311,6 +415,50 @@ const OrderDetailDialog = ({
               </Box>
             </Box>
           </Box>
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: "#888", textTransform: "uppercase", mb: 1.5, display: "block" }}>
+              Cập nhật trạng thái thanh toán
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+              {PAYMENT_STATUS_ORDER.map((s) => {
+                const cfg = PAYMENT_STATUS_CONFIG[s];
+                const isSelected = newPaymentStatus === s;
+                const isCurrent = (order.paymentStatus || "Unpaid") === s;
+                return (
+                  <Box
+                    key={s}
+                    onClick={() => setNewPaymentStatus(s)}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.8,
+                      px: 1.5,
+                      py: 0.8,
+                      borderRadius: 1.5,
+                      border: `1.5px solid ${isSelected ? cfg.color : "#e0e0e0"}`,
+                      bgcolor: isSelected ? cfg.bg : "#fff",
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                      "&:hover": { borderColor: cfg.color, bgcolor: cfg.bg },
+                    }}
+                  >
+                    <Box sx={{ color: cfg.color }}>{cfg.icon}</Box>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontWeight: isSelected ? 700 : 500,
+                        color: isSelected ? cfg.color : "#555",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {cfg.label}
+                    </Typography>
+                    {isCurrent && <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: cfg.color, ml: 0.3 }} />}
+                  </Box>
+                );
+              })}
+            </Box>
+          </Box>
         </Box>
       </DialogContent>
 
@@ -319,7 +467,11 @@ const OrderDetailDialog = ({
         <Button
           variant="contained"
           onClick={handleUpdate}
-          disabled={updating || newStatus === order.status}
+          disabled={
+            updating ||
+            (newStatus === order.status &&
+              newPaymentStatus === (order.paymentStatus || "Unpaid"))
+          }
           sx={{ bgcolor: "#E60023", "&:hover": { bgcolor: "#c4001d" }, fontWeight: 700, px: 3, borderRadius: 1.5 }}
         >
           {updating ? <CircularProgress size={20} sx={{ color: "#fff" }} /> : "Cập nhật trạng thái"}
@@ -337,6 +489,7 @@ const AdminOrders = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterPaymentStatus, setFilterPaymentStatus] = useState("all");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -358,11 +511,14 @@ const AdminOrders = () => {
     }
   };
 
-  const handleStatusChange = async (orderId: string, status: string) => {
+  const handleStatusChange = async (
+    orderId: string,
+    payload: { status?: string; paymentStatus?: string }
+  ) => {
     try {
-      await axiosPickleball.put(`/api/orders/${orderId}`, { status });
+      await axiosPickleball.put(`/api/orders/${orderId}`, payload);
       toast.success("Cập nhật trạng thái thành công!");
-      loadOrders();
+      await loadOrders();
     } catch {
       toast.error("Cập nhật thất bại");
     }
@@ -370,18 +526,26 @@ const AdminOrders = () => {
 
   const filtered = orders.filter((o) => {
     const matchStatus = filterStatus === "all" || o.status === filterStatus;
+    const matchPaymentStatus =
+      filterPaymentStatus === "all" ||
+      (o.paymentStatus || "Unpaid") === filterPaymentStatus;
     const matchSearch =
       o._id.toLowerCase().includes(search.toLowerCase()) ||
       o.shippingAddress?.fullName?.toLowerCase().includes(search.toLowerCase()) ||
       o.userId?.name?.toLowerCase().includes(search.toLowerCase()) ||
       o.shippingAddress?.phone?.includes(search);
-    return matchStatus && matchSearch;
+    return matchStatus && matchPaymentStatus && matchSearch;
   });
 
   const paginated = filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   const statCounts = STATUS_ORDER.reduce((acc, s) => {
     acc[s] = orders.filter((o) => o.status === s).length;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const paymentStatCounts = PAYMENT_STATUS_ORDER.reduce((acc, s) => {
+    acc[s] = orders.filter((o) => (o.paymentStatus || "Unpaid") === s).length;
     return acc;
   }, {} as Record<string, number>);
 
@@ -402,7 +566,7 @@ const AdminOrders = () => {
             Đơn hàng ({orders.length})
           </Typography>
           <Typography variant="caption" sx={{ color: "#888" }}>
-            Quản lý và cập nhật trạng thái đơn hàng
+            Quản lý đơn hàng và trạng thái thanh toán
           </Typography>
         </Box>
         <Tooltip title="Làm mới">
@@ -414,11 +578,12 @@ const AdminOrders = () => {
         </Tooltip>
       </Box>
 
-      <Box sx={{ display: "flex", gap: 1.5, mb: 3, flexWrap: "wrap" }}>
-        {[{ key: "all", label: "Tất cả", count: orders.length, color: "#E60023", bg: "rgba(230,0,35,0.08)" }, ...STATUS_ORDER.map((s) => ({
+      {/* Filter theo trạng thái đơn hàng */}
+      <Box sx={{ display: "flex", gap: 1.2, mb: 1.5, flexWrap: "wrap" }}>
+        {[{ key: "all", label: "Tất cả đơn", count: orders.length, color: "#E60023", bg: "rgba(230,0,35,0.08)" }, ...STATUS_ORDER.map((s) => ({
           key: s,
           label: STATUS_CONFIG[s].label,
-          count: statCounts[s],
+          count: statCounts[s] || 0,
           color: STATUS_CONFIG[s].color,
           bg: STATUS_CONFIG[s].bg,
         }))].map((item) => (
@@ -430,7 +595,7 @@ const AdminOrders = () => {
             }}
             sx={{
               px: 2,
-              py: 1,
+              py: 0.8,
               borderRadius: 1.5,
               cursor: "pointer",
               border: "1.5px solid",
@@ -443,6 +608,50 @@ const AdminOrders = () => {
             <Typography
               variant="caption"
               sx={{ fontWeight: 700, color: filterStatus === item.key ? item.color : "#555" }}
+            >
+              {item.label} ({item.count})
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+
+      {/* Filter theo trạng thái thanh toán */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3, flexWrap: "wrap" }}>
+        <Typography variant="caption" sx={{ fontWeight: 800, color: "#777", mr: 0.5 }}>
+          Thanh toán:
+        </Typography>
+        {[{ key: "all", label: "Tất cả TT", count: orders.length, color: "#555", bg: "#f5f5f5" }, ...PAYMENT_STATUS_ORDER.map((s) => ({
+          key: s,
+          label: PAYMENT_STATUS_CONFIG[s].label,
+          count: paymentStatCounts[s] || 0,
+          color: PAYMENT_STATUS_CONFIG[s].color,
+          bg: PAYMENT_STATUS_CONFIG[s].bg,
+        }))].map((item) => (
+          <Box
+            key={item.key}
+            onClick={() => {
+              setFilterPaymentStatus(item.key);
+              setPage(0);
+            }}
+            sx={{
+              px: 1.5,
+              py: 0.6,
+              borderRadius: 1.2,
+              cursor: "pointer",
+              border: "1.5px solid",
+              borderColor: filterPaymentStatus === item.key ? item.color : "#e5e5e5",
+              bgcolor: filterPaymentStatus === item.key ? item.bg : "#fff",
+              transition: "all 0.15s ease",
+              "&:hover": { borderColor: item.color },
+            }}
+          >
+            <Typography
+              variant="caption"
+              sx={{
+                fontWeight: 700,
+                color: filterPaymentStatus === item.key ? item.color : "#666",
+                fontSize: "0.72rem",
+              }}
             >
               {item.label} ({item.count})
             </Typography>
@@ -477,7 +686,6 @@ const AdminOrders = () => {
           }}
         />
       </Paper>
-
       <Paper elevation={0} sx={{ border: "1px solid #eee", borderRadius: 2, overflow: "hidden", bgcolor: "#fff" }}>
         {loading ? (
           <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
@@ -513,6 +721,9 @@ const AdminOrders = () => {
                   ) : (
                     paginated.map((order) => {
                       const status = STATUS_CONFIG[order.status] || STATUS_CONFIG.Pending;
+                      const paymentStatus =
+                        PAYMENT_STATUS_CONFIG[order.paymentStatus || "Unpaid"] ||
+                        PAYMENT_STATUS_CONFIG.Unpaid;
                       return (
                         <TableRow key={order._id} sx={{ "&:hover": { bgcolor: "#fafafa" }, transition: "background 0.15s" }}>
                           <TableCell>
@@ -542,11 +753,43 @@ const AdminOrders = () => {
                             </Typography>
                           </TableCell>
                           <TableCell>
-                            <Chip
-                              label={PAYMENT_LABEL[order.paymentMethod] || order.paymentMethod}
-                              size="small"
-                              sx={{ height: 20, fontSize: "0.68rem", bgcolor: "#f5f5f5", color: "#555" }}
-                            />
+                            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 0.5 }}>
+                              <Chip
+                                label={PAYMENT_LABEL[order.paymentMethod] || order.paymentMethod}
+                                size="small"
+                                sx={{ height: 20, fontSize: "0.68rem", bgcolor: "#f5f5f5", color: "#555" }}
+                              />
+                              <Chip
+                                icon={<Box sx={{ display: "flex", color: paymentStatus.color, ml: 0.5 }}>{paymentStatus.icon}</Box>}
+                                label={paymentStatus.label}
+                                size="small"
+                                sx={{
+                                  height: 22,
+                                  bgcolor: paymentStatus.bg,
+                                  color: paymentStatus.color,
+                                  fontWeight: 700,
+                                  fontSize: "0.68rem",
+                                  border: `1px solid ${paymentStatus.color}40`,
+                                  "& .MuiChip-icon": { ml: 0.8 },
+                                }}
+                              />
+                              {order.paidAt && (
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    color: "#16a34a",
+                                    fontSize: "0.66rem",
+                                    fontWeight: 700,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 0.3,
+                                    lineHeight: 1.2,
+                                  }}
+                                >
+                                  Lúc: {formatDate(order.paidAt)}
+                                </Typography>
+                              )}
+                            </Box>
                           </TableCell>
                           <TableCell>
                             <Chip

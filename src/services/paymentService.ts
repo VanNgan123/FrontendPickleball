@@ -1,19 +1,20 @@
 import axiosPickleball from "../api/axiosPickleball";
 
-interface CreateVNPayResponse {
+interface CreatePaymentResponse {
   status: string;
   paymentUrl: string;
+  orderUrl?: string;
   message?: string;
 }
 
 const paymentService = {
-  createVNPayUrl: async (orderId: string): Promise<CreateVNPayResponse> => {
+  createZaloPayUrl: async (orderId: string): Promise<CreatePaymentResponse> => {
     const response = await axiosPickleball.post(
-      "/api/payments/vnpay/create-payment-url",
+      "/api/payments/zalopay/create-payment-url",
       { orderId }
     );
 
-    return response as unknown as CreateVNPayResponse;
+    return response as unknown as CreatePaymentResponse;
   },
 };
 

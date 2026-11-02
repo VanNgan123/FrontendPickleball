@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640" role="img" aria-labelledby="title description">
+  <title id="title">Ảnh sản phẩm đang được cập nhật</title>
+  <desc id="description">Biểu tượng vợt và bóng Pickleball</desc>
+  <rect width="640" height="640" rx="48" fill="#f1f5f9"/>
+  <g transform="translate(320 285) rotate(-32)">
+    <rect x="-52" y="115" width="104" height="190" rx="42" fill="#0f766e"/>
+    <rect x="-132" y="-145" width="264" height="310" rx="124" fill="#ffffff" stroke="#0f172a" stroke-width="18"/>
+    <circle cx="0" cy="10" r="78" fill="#84cc16" opacity=".92"/>
+  </g>
+  <g fill="#0f766e">
+    <circle cx="480" cy="205" r="58"/>
+    <circle cx="460" cy="186" r="6" fill="#f1f5f9"/>
+    <circle cx="491" cy="177" r="6" fill="#f1f5f9"/>
+    <circle cx="512" cy="204" r="6" fill="#f1f5f9"/>
+    <circle cx="475" cy="218" r="6" fill="#f1f5f9"/>
+    <circle cx="508" cy="235" r="6" fill="#f1f5f9"/>
+  </g>
+  <text x="320" y="575" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#475569">Ảnh đang được cập nhật</text>
+</svg>

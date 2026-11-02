@@ -28,7 +28,7 @@ import type { Order } from "../../services/orderService";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const getImageUrl = (imagePath?: string) => {
-  if (!imagePath) return "/placeholder.png";
+  if (!imagePath) return "/product-placeholder.svg";
   if (imagePath.startsWith("http")) return imagePath;
   const baseUrl = API_URL.replace(/\/+$/, "");
   const path = imagePath.startsWith("/") ? imagePath : `/${imagePath}`;
@@ -58,9 +58,7 @@ const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> =
 
 const PAYMENT_LABEL: Record<string, string> = {
   COD: "Thanh toán khi nhận hàng (COD)",
-  VNPay: "VNPay",
-  Momo: "Ví MoMo",
-  BankTransfer: "Chuyển khoản ngân hàng",
+  ZaloPay: "Ví ZaloPay",
 };
 
 const OrderSuccess = () => {

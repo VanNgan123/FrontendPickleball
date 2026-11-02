@@ -40,7 +40,7 @@ const muiTheme = createTheme({
         root: {
           textTransform: "none",
           fontWeight: 600,
-          borderRadius: 6,
+          borderRadius: 12,
         },
       },
     },

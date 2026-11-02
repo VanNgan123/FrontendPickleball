@@ -3,9 +3,9 @@ import {
   AppBar, Toolbar, Box, IconButton, InputBase,
   Typography, Badge, Button, Container, Menu,
   MenuItem, Paper, List, ListItemButton, ListItemText,
-  CircularProgress, Divider, Avatar, ClickAwayListener,
+  CircularProgress, Divider, Avatar, ClickAwayListener, Drawer,
 } from "@mui/material";
-import { Search, FavoriteBorder, ShoppingBagOutlined, PersonOutline } from "@mui/icons-material";
+import { Search, FavoriteBorder, ShoppingBagOutlined, PersonOutline, MenuRounded } from "@mui/icons-material";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "../../store/store";
@@ -13,9 +13,10 @@ import { logoutUser, fetchUserProfile } from "../../store/slices/authSlice";
 import { fetchCart } from "../../store/slices/cartSlice";
 import { X, TrendingUp } from "lucide-react";
 import axiosPickleball from "../../api/axiosPickleball";
-import logoImage from "../../assets/logo/image.png";
+import logoImage from "../../assets/logo/image.webp";
 import { Product } from "../../types";
 import NotificationBell from "../../components/NotificationBell/NotificationBell";
+import { useImageFallback } from "../../utils/image";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -62,6 +63,8 @@ const Header = () => {
   const [searchFocused, setSearchFocused] = useState(false);
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [suggestLoading, setSuggestLoading] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   const debouncedQuery = useDebounce(searchQuery, 350);
@@ -109,6 +112,7 @@ const Header = () => {
     if (!query) return;
     setSearchFocused(false);
     setSuggestions([]);
+    setMobileSearchOpen(false);
     navigate(`/search?q=${encodeURIComponent(query)}`);
   }, [searchQuery, navigate]);
 
@@ -130,6 +134,11 @@ const Header = () => {
     suggestLoading ||
     searchQuery.length === 0
   );
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setMobileSearchOpen(false);
+  }, [location.pathname]);
 
   return (
     <AppBar
@@ -360,8 +369,10 @@ const Header = () => {
                           >
                             <Box
                               component="img"
-                              src={getImageUrl(product.image?.[0]) || "/placeholder.png"}
+                              src={getImageUrl(product.image?.[0]) || "/product-placeholder.svg"}
                               alt={product.name}
+                              onError={useImageFallback}
+                              loading="lazy"
                               sx={{
                                 width: 46,
                                 height: 46,
@@ -406,7 +417,15 @@ const Header = () => {
 
           <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: { xs: 0.6, md: 1.15 } }}>
             <IconButton
-              onClick={() => navigate("/products")}
+              aria-label="Tìm kiếm sản phẩm"
+              onClick={() => setMobileSearchOpen((current) => !current)}
+              sx={{ display: { xs: "inline-flex", md: "none" }, color: "#334155", width: 42, height: 42 }}
+            >
+              <Search />
+            </IconButton>
+            <IconButton
+              aria-label="Danh sách yêu thích"
+              onClick={() => navigate("/wishlist")}
               sx={{
                 display: { xs: "none", sm: "inline-flex" },
                 color: "#334155",
@@ -419,6 +438,7 @@ const Header = () => {
             </IconButton>
 
             <IconButton
+              aria-label={`Giỏ hàng${cartCount ? `, ${cartCount} sản phẩm` : ""}`}
               onClick={() => navigate("/cart")}
               sx={{
                 width: 46,
@@ -447,9 +467,10 @@ const Header = () => {
             </IconButton>
 
             {isAuthenticated ? (
-              <>
+              <Box sx={{ display: { xs: "none", sm: "contents" } }}>
                 <NotificationBell />
                 <IconButton
+                  aria-label="Mở menu tài khoản"
                   onClick={(e) => setAnchorEl(e.currentTarget)}
                   sx={{
                     width: 46,
@@ -488,22 +509,24 @@ const Header = () => {
                   </Box>
                   <MenuItem onClick={() => { setAnchorEl(null); navigate("/profile"); }}>Hồ sơ của tôi</MenuItem>
                   <MenuItem onClick={() => { setAnchorEl(null); navigate("/orders"); }}>Đơn hàng của tôi</MenuItem>
-                  {(user?.role === "admin" || user?.role === "manager") && (
+                  {(user?.role === "admin" || user?.role === "staff") && (
                     <MenuItem onClick={() => { setAnchorEl(null); navigate("/admin"); }} sx={{ color: "#0F766E", fontWeight: 800 }}>
-                      Quản trị Admin
+                      Trang quản trị (Admin/Staff)
                     </MenuItem>
                   )}
                   <Divider />
                   <MenuItem onClick={handleLogout} sx={{ color: "#ef4444" }}>Đăng xuất</MenuItem>
                 </Menu>
-              </>
+              </Box>
             ) : (
               <IconButton
+                aria-label="Đăng nhập"
                 component={Link}
                 to="/login"
                 sx={{
-                    width: 46,
-                    height: 46,
+                  display: { xs: "none", sm: "inline-flex" },
+                  width: 46,
+                  height: 46,
                   bgcolor: "#0F172A",
                   color: "#fff",
                   "&:hover": { bgcolor: "#0F766E" },
@@ -512,9 +535,92 @@ const Header = () => {
                 <PersonOutline sx={{ fontSize: 24 }} />
               </IconButton>
             )}
+            <IconButton
+              aria-label="Mở menu điều hướng"
+              onClick={() => setMobileMenuOpen(true)}
+              sx={{ display: { xs: "inline-flex", md: "none" }, color: "#0F172A", width: 42, height: 42 }}
+            >
+              <MenuRounded />
+            </IconButton>
           </Box>
         </Toolbar>
       </Container>
+
+      {mobileSearchOpen && (
+        <Box sx={{ display: { xs: "block", md: "none" }, px: 2, pb: 1.5, bgcolor: "#fff" }}>
+          <Box
+            component="form"
+            onSubmit={(event) => { event.preventDefault(); handleSearch(); }}
+            sx={{ display: "flex", alignItems: "center", bgcolor: "#F1F5F9", border: "1px solid #CBD5E1", borderRadius: 99, pl: 1.5, pr: 0.5 }}
+          >
+            <Search sx={{ color: "#64748B" }} />
+            <InputBase
+              autoFocus
+              fullWidth
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Tìm vợt, giày, bóng..."
+              inputProps={{ "aria-label": "Từ khóa tìm kiếm" }}
+              sx={{ px: 1, py: 0.8 }}
+            />
+            <Button type="submit" disabled={!searchQuery.trim()} sx={{ borderRadius: 99 }}>Tìm</Button>
+          </Box>
+        </Box>
+      )}
+
+      <Drawer
+        anchor="right"
+        open={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        PaperProps={{ sx: { width: "min(86vw, 340px)", p: 2 } }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", px: 1, mb: 1 }}>
+          <Typography sx={{ fontWeight: 900, color: "#0F172A" }}>DANH MỤC</Typography>
+          <IconButton aria-label="Đóng menu" onClick={() => setMobileMenuOpen(false)}><X size={20} /></IconButton>
+        </Box>
+        <Divider sx={{ mb: 1 }} />
+        <List>
+          {navItems.map((item) => (
+            <ListItemButton
+              key={item.path}
+              selected={item.path === "/" ? location.pathname === "/" : location.pathname.startsWith(item.path)}
+              onClick={() => navigate(item.path)}
+              sx={{ borderRadius: 2, mb: 0.5 }}
+            >
+              <ListItemText primary={item.label} primaryTypographyProps={{ fontWeight: 750 }} />
+            </ListItemButton>
+          ))}
+          <ListItemButton onClick={() => navigate("/wishlist")} sx={{ borderRadius: 2 }}>
+            <ListItemText primary="Danh sách yêu thích" primaryTypographyProps={{ fontWeight: 750 }} />
+          </ListItemButton>
+          <ListItemButton onClick={() => navigate("/support")} sx={{ borderRadius: 2 }}>
+            <ListItemText primary="Liên hệ & trợ giúp" primaryTypographyProps={{ fontWeight: 750 }} />
+          </ListItemButton>
+          <Divider sx={{ my: 1 }} />
+          {isAuthenticated ? (
+            <>
+              <ListItemButton onClick={() => navigate("/profile")} sx={{ borderRadius: 2 }}>
+                <ListItemText primary="Tài khoản của tôi" primaryTypographyProps={{ fontWeight: 750 }} />
+              </ListItemButton>
+              <ListItemButton onClick={() => navigate("/orders")} sx={{ borderRadius: 2 }}>
+                <ListItemText primary="Đơn hàng của tôi" primaryTypographyProps={{ fontWeight: 750 }} />
+              </ListItemButton>
+              {(user?.role === "admin" || user?.role === "staff") && (
+                <ListItemButton onClick={() => navigate("/admin")} sx={{ borderRadius: 2 }}>
+                  <ListItemText primary="Trang quản trị" primaryTypographyProps={{ fontWeight: 750, color: "#0F766E" }} />
+                </ListItemButton>
+              )}
+              <ListItemButton onClick={handleLogout} sx={{ borderRadius: 2, color: "#DC2626" }}>
+                <ListItemText primary="Đăng xuất" primaryTypographyProps={{ fontWeight: 750 }} />
+              </ListItemButton>
+            </>
+          ) : (
+            <ListItemButton onClick={() => navigate("/login")} sx={{ borderRadius: 2, bgcolor: "rgba(132,204,22,0.12)" }}>
+              <ListItemText primary="Đăng nhập" primaryTypographyProps={{ fontWeight: 850, color: "#3F7D12" }} />
+            </ListItemButton>
+          )}
+        </List>
+      </Drawer>
     </AppBar>
   );
 };

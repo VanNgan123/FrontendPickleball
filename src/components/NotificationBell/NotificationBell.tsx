@@ -94,7 +94,7 @@ const NotificationBell = () => {
     }
     setOpen(false);
     if (notif.orderId) {
-      if (user?.role === "admin" || user?.role === "manager") {
+      if (user?.role === "admin" || user?.role === "staff") {
         navigate("/admin/orders");
       } else {
         navigate("/orders");
